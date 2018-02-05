@@ -53,6 +53,15 @@ int init( void )
 	if(rc)
 	{
 		printf(	"Mindsensor 8Ch servo found\n" );
+		INX_T mode = sensor_get_mode(rc);
+		printf("mode: %d\n", mode);
+
+		float val0 = sensor_get_value0(rc, 0.0);
+		float val1 = sensor_get_value1(rc, 0.0);
+		float val2 = sensor_get_value2(rc, 0.0);
+		printf("value0: %f %f %f\n", val0, val1, val2);
+		
+
 	}
 
 	printf( "Press BACK on the EV3 brick for EXIT...\n" );

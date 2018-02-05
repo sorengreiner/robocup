@@ -14,6 +14,7 @@ int g_buttons = IR_REMOTE__NONE_;
 
 int max_speed;         /* Motor maximal speed (will be detected) */ 
 POOL_T ir;             /* IR sensor port (will be detected) */
+POOL_T rc;
 
 float speed = 0.0f;
 float angle = 0.0f;
@@ -47,6 +48,13 @@ int init( void )
 		"Please, use the EV3 brick buttons.\n"
 		);
 	}
+
+	rc = sensor_search( MS_8CH_SERVO );
+	if(rc)
+	{
+		printf(	"Mindsensor 8Ch servo found\n"
+	}
+
 	printf( "Press BACK on the EV3 brick for EXIT...\n" );
 
 	return ( 1 );
@@ -56,7 +64,6 @@ int init( void )
 void UpdateBrick()
 {
 	uint8_t keys;
-	uint8_t pressed = EV3_KEY__NONE_;
 
 	keys = brick_keys();
 
@@ -80,6 +87,7 @@ void UpdateIr()
 	}
 
 	bool bSpeedChanged = false;
+	bool bAngleChanged = false;
 	int buttons;
 	buttons = sensor_get_value( IR_CHANNEL, ir, IR_REMOTE__NONE_ );
 
@@ -107,9 +115,19 @@ void UpdateIr()
 				break;
 	
 			case BLUE_DOWN:
+				if(angle > -50.0f)
+				{
+					angle -= 5.0f;
+					bAngleChanged = true;
+				}
 				break;
 	
 			case BLUE_UP:
+				if(angle < 50.0f)
+				{
+					angle += 5.0f;
+					bAngleChanged = true;
+				}
 				break;
 	
 			case RED_DOWN_BLUE_UP:
@@ -139,6 +157,11 @@ void UpdateIr()
 		int motorSetpoint = (int)(max_speed * speed / 100); 
 		tacho_set_speed_sp( MOTOR_BOTH, motorSetpoint );
 		tacho_run_forever( MOTOR_BOTH ); 		
+	}
+
+	if(bAngleChanged)
+	{
+		printf("angle %f\n", angle);
 	}
 }
 

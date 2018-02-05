@@ -99,6 +99,7 @@ void UpdateIr()
 				if(speed < 100.0)
 				{
 					speed += 5.0f;
+					bSpeedChanged = true;
 				}
 				break;
 	
@@ -118,6 +119,7 @@ void UpdateIr()
 				if(speed > -100.0)
 				{
 					speed -= 5.0f;
+					bSpeedChanged = true;
 				}
 				break;
 	
@@ -153,7 +155,7 @@ int main( void )
 	if ( !brick_init()) return ( 1 );
 
 	printf( "*** ( EV3 ) Hello! ***\n" );
-	alive = init();
+	g_bAlive = init();
 
 	while ( g_bAlive ) 
 	{

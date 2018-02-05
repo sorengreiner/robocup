@@ -52,7 +52,7 @@ int init( void )
 	rc = sensor_search( MS_8CH_SERVO );
 	if(rc)
 	{
-		printf(	"Mindsensor 8Ch servo found\n"
+		printf(	"Mindsensor 8Ch servo found\n" );
 	}
 
 	printf( "Press BACK on the EV3 brick for EXIT...\n" );

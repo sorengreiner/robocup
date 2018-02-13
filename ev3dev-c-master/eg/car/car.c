@@ -15,21 +15,78 @@ int g_buttons = IR_REMOTE__NONE_;
 int max_speed;         /* Motor maximal speed (will be detected) */ 
 POOL_T ir;             /* IR sensor port (will be detected) */
 POOL_T rc;
+uint8_t snRight;
+uint8_t snLeft;
 
 float speed = 0.0f;
 float angle = 0.0f;
-uint8_t sn;
+
+SCar car;
+
+
+void CarComputeTurningAngle(SCar* pCar, float fAngle, float fSpeed)
+{
+	pCar->fAngle = fAngle;
+	pCar->fSpeed = fSpeed;
+
+	float v = (M_PI / 180.0f) * fAngle;
+	float tanv = tan(v);
+
+	float vr = atan(1.0f / (1.0f/tanv + (pCar->fCarWidth/2)/pCar->fCarLength) );
+	float vl = atan(1.0f / (1.0f/tanv - (pCar->fCarWidth/2)/pCar->fCarLength) );
+
+	pCar->fFrontWheelRightAngle = vr * 180.0f / M_PI;
+	pCar->fFrontWheelLeftAngle = vl * 180.0f / M_PI;
+
+	float curveCenter = pCar->fCarLength;
+	float curveLeft = pCar->fCarLength;
+	float curveRight = pCar->fCarLength;
+
+	// Largest turning radius accepted. Larger than this and the car is considered going straight
+	const float radiusMax = 10000.0f; // mm
+
+	float angularLimit = atan(pCar->fCarLength/radiusMax);
+
+	if(fabs(v) > angularLimit)
+	{
+		float radius = pCar->fCarLength/tanv;
+		curveCenter = v*radius;
+		curveLeft = v*(radius - pCar->fCarWidth/2);
+		curveRight = v*(radius + pCar->fCarWidth/2);
+	}
+
+	pCar->fBackWheelLeftSpeed = fSpeed*curveLeft/curveCenter;
+	pCar->fBackWheelRightSpeed = fSpeed*curveRight/curveCenter;
+}
+
+
+void CarPrint(const SCar* pCar)
+{
+	printf("LeftAngle:%f RightAngle:%f LeftSpeed:%f RightSpeed:%f\n", 
+		pCar->fFrontWheelLeftAngle, 
+		pCar->fFrontWheelRightAngle,
+		pCar->fBackWheelLeftSpeed,
+		pCar->fBackWheelRightSpeed
+	);
+}
+
 
 int init( void )
 {
+	car.fCarLength = 200;
+	car.fCarWidth = 190;
+
 	uint8_t command[8];
 	uint8_t response[8];
 	char s[256];
 
-	if ( tacho_is_plugged( MOTOR_BOTH, TACHO_TYPE__NONE_ )) {  /* any type of motor */
+	if ( tacho_is_plugged( MOTOR_BOTH, TACHO_TYPE__NONE_ )) 
+	{
 		max_speed = tacho_get_max_speed( MOTOR_LEFT, 0 );
 		tacho_reset( MOTOR_BOTH );
-	} else {
+	} 
+	else 
+	{
 		printf( "Please, plug LEFT motor in C port,\n"
 		"RIGHT motor in B port and try again.\n"
 		);
@@ -38,7 +95,8 @@ int init( void )
 	}
 
 	ir = sensor_search( LEGO_EV3_IR );
-	if ( ir ) {
+	if ( ir ) 
+	{
 		ir_set_mode_ir_remote( ir );
 
 		printf(	"IR remote control:\n"
@@ -47,32 +105,46 @@ int init( void )
 		"RED UP   | BLUE DOWN - left\n"
 		"RED DOWN | BLUE UP   - right\n"
 		);
-	} else {
+	} 
+	else 
+	{
 		printf( "IR sensor is NOT found.\n"
 		"Please, use the EV3 brick buttons.\n"
 		);
 	}
 
 	ev3_servo_init();
-
-	
-	
 	 
 	int i;       
-printf( "Found servo motors:\n" );
-	for ( i = 0; i < DESC_LIMIT; i++ ) {
-		if ( ev3_servo[ i ].type_inx != SERVO_TYPE__NONE_ ) {
+	printf( "Found servo motors:\n" );
+	for ( i = 0; i < DESC_LIMIT; i++ ) 
+	{
+		if ( ev3_servo[ i ].type_inx != SERVO_TYPE__NONE_ ) 
+		{
 			printf( "  type = %s\n", ev3_servo_type( ev3_servo[ i ].type_inx ));
 			printf( "  port = %s\n", ev3_servo_port_name( i, s ));
 		}
 	}
-	if ( ev3_search_servo_plugged_in( INPUT_1, SERVO_1, &sn, 0 )) {
-		printf( "Servo motor is found, setting position...\n" );
-		set_servo_position_sp( sn, 0 );
-	} else {
-		printf( "Servo motor is NOT found\n" );
+
+	if ( ev3_search_servo_plugged_in( INPUT_1, SERVO_1, &snRight, 0 )) 
+	{
+		printf( "Servo motor right is found, setting position...\n" );
+		set_servo_position_sp( snRight, 0 );
+	} 
+	else 
+	{
+		printf( "Servo motor right is NOT found\n" );
 	} 
 
+	if ( ev3_search_servo_plugged_in( INPUT_1, SERVO_2, &snLeft, 0 )) 
+	{
+		printf( "Servo motor left is found, setting position...\n" );
+		set_servo_position_sp( snLeft, 0 );
+	} 
+	else 
+	{
+		printf( "Servo motor left is NOT found\n" );
+	} 
 
 	rc = sensor_search( MS_8CH_SERVO );
 	if(rc)
@@ -88,21 +160,13 @@ printf( "Found servo motors:\n" );
 		{
 			printf("Other mode found\n");
 		}
-		command[0] = 0x41;
-		response[0] = 0;
-		get_sensor_address(rc, (char*)command, 1);
-		printf("address:%d\n", (int)command[0]);
-		command[0] = 0x41;
-		set_sensor_bin_data(rc, command, 1);
-		get_sensor_bin_data(rc, response, 1);
-		printf("value0: %d\n", response[0]);
-		float val = sensor_get_value1(rc, 0);		
-		printf("val: %f\n", val);
+		float battery = sensor_get_value1(rc, 0);		
+		printf("battery %f mv\n", battery);
 	}
 
 	printf( "Press BACK on the EV3 brick for EXIT...\n" );
 
-	return ( 1 );
+	return 1;
 }
 
 
@@ -198,36 +262,28 @@ void UpdateIr()
 	if(bSpeedChanged)
 	{
 		printf("speed %f\n", speed);
-
-		int motorSetpoint = (int)(max_speed * speed / 100); 
-		tacho_set_speed_sp( MOTOR_BOTH, motorSetpoint );
-		tacho_run_forever( MOTOR_BOTH ); 		
 	}
 
 	if(bAngleChanged)
 	{
 		printf("angle %f\n", angle);
-		set_servo_position_sp(sn, (int)angle);
+	}
+
+	if(bSpeedChanged || bAngleChanged)
+	{
+		CarComputeTurningAngle(&car, angle, speed);
+		CarPrint(&car);
 /*
-		uint16_t pulse = (float)((angle * 500 / 50) + 1500);
-		printf("pulse %d\n", pulse);
-		uint8_t cmd[3];
-		cmd[0] = 0x42;
-		cmd[1] = pulse & 0x00FF;
-		cmd[2] = (pulse >> 8) & 0x00FF;
-		set_sensor_bin_data(rc, cmd, 3);
+		int motorSetpointLeft = (int)(max_speed * car.fBackWheelLeftSpeed / 100); 
+		int motorSetpointRight = (int)(max_speed * car.fBackWheelRightSpeed / 100); 
+		tacho_set_speed_sp( MOTOR_LEFT, motorSetpointLeft );
+		tacho_set_speed_sp( MOTOR_RIGHT, motorSetpointRight );
+		tacho_run_forever( MOTOR_BOTH ); 		
 
-		cmd[0] = 0x44;
-		set_sensor_bin_data(rc, cmd, 3);
+		set_servo_position_sp(snLeft, (int)car.fFrontWheelLeftAngle);
+		set_servo_position_sp(snRight, (int)car.fFrontWheelRightAngle);
 
-		uint8_t response[2];
-		response[0] = 0;
-		response[1] = 0;
-		set_sensor_bin_data(rc, cmd, 1);
-		get_sensor_bin_data(rc, response, 1);
-		
-		printf("val: %d %d\n", (int)response[0]);
-*/		
+*/
 	}
 }
 

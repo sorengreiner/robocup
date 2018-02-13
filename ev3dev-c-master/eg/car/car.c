@@ -228,7 +228,7 @@ void UpdateBrick()
 }
 
 
-void UpdateIr()
+void UpdateIr(float delta)
 {
 	if ( ir == SOCKET__NONE_ )
 	{
@@ -240,7 +240,7 @@ void UpdateIr()
 	int buttons;
 	buttons = sensor_get_value( IR_CHANNEL, ir, IR_REMOTE__NONE_ );
 
-	if(buttons != g_buttons)
+//	if(buttons != g_buttons)
 	{
 		g_buttons = buttons;
 
@@ -250,12 +250,14 @@ void UpdateIr()
 				break;
 	
 			case RED_DOWN_BLUE_DOWN:
+				speed = 0.0f;
+				angle = 0.0f;
 				break;
 	
 			case RED_UP:
 				if(speed < 100.0)
 				{
-					speed += 5.0f;
+					speed += 50.0f*delta;
 					bSpeedChanged = true;
 				}
 				break;
@@ -266,7 +268,7 @@ void UpdateIr()
 			case BLUE_DOWN:
 				if(angle > -60.0f)
 				{
-					angle -= 5.0f;
+					angle -= 50.0f*delta;
 					bAngleChanged = true;
 				}
 				break;
@@ -274,7 +276,7 @@ void UpdateIr()
 			case BLUE_UP:
 				if(angle < 60.0f)
 				{
-					angle += 5.0f;
+					angle += 50.0f*delta;
 					bAngleChanged = true;
 				}
 				break;
@@ -285,7 +287,7 @@ void UpdateIr()
 			case RED_DOWN:
 				if(speed > -100.0)
 				{
-					speed -= 5.0f;
+					speed -= 50.0f*delta;
 					bSpeedChanged = true;
 				}
 				break;
@@ -312,7 +314,7 @@ void UpdateIr()
 	if(bSpeedChanged || bAngleChanged)
 	{
 		CarComputeTurningAngle(&car, angle, speed);
-		CarPrint(&car);
+//		CarPrint(&car);
 
 		int motorSetpointLeft = -(int)(max_speed * car.fBackWheelLeftSpeed / 100); 
 		int motorSetpointRight = -(int)(max_speed * car.fBackWheelRightSpeed / 100); 
@@ -347,10 +349,14 @@ int main( void )
 	while ( g_bAlive ) 
 	{
 		UpdateBrick();
-		UpdateIr();
+		UpdateIr(0.04f);
 		UpdateDrive();
 		sleep_ms(10);
 	}
+	tacho_set_speed_sp( MOTOR_BOTH, 0 );
+	tacho_run_forever( MOTOR_BOTH );
+	set_servo_position_sp(snLeft, 0);
+	set_servo_position_sp(snRight, 0);
 	brick_uninit();
 
 	printf( "*** ( EV3 ) Bye! ***\n" );

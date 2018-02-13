@@ -3,6 +3,27 @@
 #include "brick.h"
 
 #include "ev3_servo.h"
+
+
+#include <math.h>
+
+#define M_PI		3.14159265358979323846 
+
+
+typedef struct 
+{
+	float fCarLength;
+	float fCarWidth;
+
+	float fAngle;
+	float fSpeed;
+
+	float fFrontWheelLeftAngle;
+	float fFrontWheelRightAngle;
+	float fBackWheelLeftSpeed;
+	float fBackWheelRightSpeed;
+} SCar;
+
 int g_bAlive = true; ///< Program is alive
 int g_buttons = IR_REMOTE__NONE_;
 
@@ -21,7 +42,24 @@ uint8_t snLeft;
 float speed = 0.0f;
 float angle = 0.0f;
 
+int leftCenter = -10;
+int rightCenter = 3;
+
 SCar car;
+
+
+int AngleToServoLeft(float angle)
+{
+	int servo = (int)(-angle*100.0f/90.0f) + leftCenter;
+	return servo;
+}
+
+
+int AngleToServoRight(float angle)
+{
+	int servo = (int)(-angle*100.0f/90.0f) + rightCenter;
+	return servo;
+}
 
 
 void CarComputeTurningAngle(SCar* pCar, float fAngle, float fSpeed)
@@ -130,6 +168,7 @@ int init( void )
 	{
 		printf( "Servo motor right is found, setting position...\n" );
 		set_servo_position_sp( snRight, 0 );
+		set_servo_command_inx( snRight, SERVO_RUN);
 	} 
 	else 
 	{
@@ -140,6 +179,7 @@ int init( void )
 	{
 		printf( "Servo motor left is found, setting position...\n" );
 		set_servo_position_sp( snLeft, 0 );
+		set_servo_command_inx(snLeft, SERVO_RUN);
 	} 
 	else 
 	{
@@ -160,7 +200,7 @@ int init( void )
 		{
 			printf("Other mode found\n");
 		}
-		float battery = sensor_get_value1(rc, 0);		
+		float battery = sensor_get_value0(rc, 0);		
 		printf("battery %f mv\n", battery);
 	}
 
@@ -224,7 +264,7 @@ void UpdateIr()
 				break;
 	
 			case BLUE_DOWN:
-				if(angle > -50.0f)
+				if(angle > -60.0f)
 				{
 					angle -= 5.0f;
 					bAngleChanged = true;
@@ -232,7 +272,7 @@ void UpdateIr()
 				break;
 	
 			case BLUE_UP:
-				if(angle < 50.0f)
+				if(angle < 60.0f)
 				{
 					angle += 5.0f;
 					bAngleChanged = true;
@@ -273,17 +313,19 @@ void UpdateIr()
 	{
 		CarComputeTurningAngle(&car, angle, speed);
 		CarPrint(&car);
-/*
-		int motorSetpointLeft = (int)(max_speed * car.fBackWheelLeftSpeed / 100); 
-		int motorSetpointRight = (int)(max_speed * car.fBackWheelRightSpeed / 100); 
+
+		int motorSetpointLeft = -(int)(max_speed * car.fBackWheelLeftSpeed / 100); 
+		int motorSetpointRight = -(int)(max_speed * car.fBackWheelRightSpeed / 100); 
 		tacho_set_speed_sp( MOTOR_LEFT, motorSetpointLeft );
 		tacho_set_speed_sp( MOTOR_RIGHT, motorSetpointRight );
 		tacho_run_forever( MOTOR_BOTH ); 		
 
-		set_servo_position_sp(snLeft, (int)car.fFrontWheelLeftAngle);
-		set_servo_position_sp(snRight, (int)car.fFrontWheelRightAngle);
+		int servoLeftSp = AngleToServoLeft(car.fFrontWheelLeftAngle);
+		int servoRightSp = AngleToServoRight(car.fFrontWheelRightAngle); 
+		set_servo_position_sp(snLeft, servoLeftSp);
+		set_servo_position_sp(snRight, servoRightSp);
 
-*/
+
 	}
 }
 

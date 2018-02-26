@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include <sys/time.h>
+#include <time.h>
 #include "brick.h"
 
 #include "ev3_servo.h"
@@ -10,12 +10,12 @@
 
 #define M_PI		3.14159265358979323846 
 
-int64_t TimeMilliseconds(void)
+long TimeMilliseconds(void)
 {
-	timespec ts;
-	// clock_gettime(CLOCK_MONOTONIC, &ts); // Works on FreeBSD
-	clock_gettime(CLOCK_REALTIME, &ts); // Works on Linux
-	return (int64_t)(ts.tv_nsec/1000000);
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts); // Works on FreeBSD
+//	clock_gettime(CLOCK_REALTIME, &ts); // Works on Linux
+	return (long)(ts.tv_nsec/1000000);
 }
 
 
@@ -355,34 +355,44 @@ int main( void )
 	printf( "*** ( EV3 ) Hello! ***\n" );
 	g_bAlive = init();
 
+
+	struct timespec res;
+	clock_getres(CLOCK_MONOTONIC, &res);
+	printf("res:%ld\n", res.tv_nsec);
+	
+
+
 	int64_t timeLast = TimeMilliseconds();
 
 	while ( g_bAlive ) 
 	{
+		uint32_t timeBegin = TimeMilliseconds();
 		UpdateBrick();
 		UpdateIr(0.04f);
 		UpdateDrive();
 
-		int64_t timeNow = TimeMilliseconds();
-		
-		int64_t timeDelta = timeNow - timeLast;
+		uint32_t timeEnd = TimeMilliseconds();
 
-		if(timeDelta >= 0)
+//		printf("t:%ld\n", (long)timeNow);		
+		uint32_t timeDelta = timeEnd >= timeBegin ? timeEnd - timeBegin : 1000 + timeEnd - timeBegin;
+
+//		printf("b:%u e:%u d:%u\n", timeBegin, timeEnd, timeDelta);
+
+//		sleep_ms(100);
+
+		if(timeDelta < 100)
 		{
-			if(timeDelta < 20)
-			{
-				sleep_ms(timeDelta);
-			}
-			else
-			{
-				printf( "warning overflow delta\n" );
-			}
+			sleep_ms(100 - timeDelta);
 		}
 		else
 		{
-			printf( "warning negative delta\n" );
+			printf( "warning overflow delta\n" );
 		}
+
+
+//		timeLast = timeNow;
 	}
+
 	tacho_set_speed_sp( MOTOR_BOTH, 0 );
 	tacho_run_forever( MOTOR_BOTH );
 	set_servo_position_sp(snLeft, 0);

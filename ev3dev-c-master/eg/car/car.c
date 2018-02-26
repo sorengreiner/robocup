@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <sys/time.h>
 #include "brick.h"
 
 #include "ev3_servo.h"
@@ -8,6 +9,14 @@
 #include <math.h>
 
 #define M_PI		3.14159265358979323846 
+
+int64_t TimeMilliseconds(void)
+{
+	timespec ts;
+	// clock_gettime(CLOCK_MONOTONIC, &ts); // Works on FreeBSD
+	clock_gettime(CLOCK_REALTIME, &ts); // Works on Linux
+	return (int64_t)(ts.tv_nsec/1000000);
+}
 
 
 typedef struct 
@@ -344,12 +353,33 @@ int main( void )
 	printf( "*** ( EV3 ) Hello! ***\n" );
 	g_bAlive = init();
 
+	int64_t timeLast = TimeMilliseconds();
+
 	while ( g_bAlive ) 
 	{
 		UpdateBrick();
 		UpdateIr();
 		UpdateDrive();
-		sleep_ms(10);
+
+		int64_t timeNow = TimeMilliseconds();
+		
+		int64_t timeDelta = timeNow - timeLast;
+
+		if(timeDelta >= 0)
+		{
+			if(timeDelta < 20)
+			{
+				sleep_ms(timeDelta);
+			}
+			else
+			{
+				printf( "warning overflow delta\n" );
+			}
+		}
+		else
+		{
+			printf( "warning negative delta\n" );
+		}
 	}
 	brick_uninit();
 

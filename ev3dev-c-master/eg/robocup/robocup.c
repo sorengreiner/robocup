@@ -15,13 +15,18 @@ int main( void )
 		return 1;
 	}
 
-	for(int i = 0; i < 100; i++)
+	while(true)
 	{
 		uint8_t keys = KeysRead();
 
-		printf("keys=%0X2\n", keys);
+		printf("keys=%02X\n", keys);
 	
-		sleep_ms(100);
+		if(keys == EV3_KEY_BACK)
+		{
+			break;
+		}
+	
+		sleep_ms(10);
 	}
 
 	KeysClose();

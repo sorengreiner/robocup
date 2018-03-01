@@ -53,6 +53,7 @@ bool ServoSetPosition(SServo* pServo)
 
 #define GPIO_KEYS_PATH  "/dev/input/by-path/platform-gpio-keys.0-event" 
 
+/*
 enum {
 	EV3_KEY__NONE_ = 0,
 
@@ -63,6 +64,7 @@ enum {
 	EV3_KEY_CENTER = 0x10L,
 	EV3_KEY_BACK   = 0x20L,
 };
+*/
 
 #define DESC_LIMIT    64
 #define DESC_VEC_LEN  4 

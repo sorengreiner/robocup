@@ -123,8 +123,6 @@ int init( void )
 	car.fCarLength = 200;
 	car.fCarWidth = 190;
 
-	uint8_t command[8];
-	uint8_t response[8];
 	char s[256];
 
 	if ( tacho_is_plugged( MOTOR_BOTH, TACHO_TYPE__NONE_ )) 
@@ -359,16 +357,12 @@ int main( void )
 	struct timespec res;
 	clock_getres(CLOCK_MONOTONIC, &res);
 	printf("res:%ld\n", res.tv_nsec);
-	
-
-
-	int64_t timeLast = TimeMilliseconds();
 
 	while ( g_bAlive ) 
 	{
 		uint32_t timeBegin = TimeMilliseconds();
 		UpdateBrick();
-		UpdateIr(0.04f);
+		UpdateIr(0.1f);
 		UpdateDrive();
 
 		uint32_t timeEnd = TimeMilliseconds();

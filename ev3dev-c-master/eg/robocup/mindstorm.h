@@ -99,6 +99,7 @@ uint8_t RemoteRead(SRemote* pRemote);
 //-----------------------------------------------------------------------------
 long TimeMilliseconds(void);
 
+extern void sleep_ms( int ms );
 
 #endif
 

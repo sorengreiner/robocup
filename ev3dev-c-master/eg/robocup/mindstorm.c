@@ -1,6 +1,6 @@
 #include "mindstorm.h"
 
-
+#include "sensors.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -127,8 +127,35 @@ uint8_t KeysRead()
 // IR Remote
 //-----------------------------------------------------------------------------
 
+#define PATH_MODE  "/sys/class/lego-sensor/sensor///mode"
+
+
+
 bool RemoteOpen(SRemote* pRemote, EInputPort eInputPort)
 {
+sensor_set_mode( pool, LEGO_EV3_IR_IR_REMOTE );
+	char s[] = PATH_MODE;
+	*modp_uitoa10( sn, s + PATH_PREF_LEN ) = '/';
+
+	return ev3_write_char_array( s, value ); 
+size_t ev3_write_char_array( const char *fn, char *value )
+{
+	return ev3_write( fn, value );
+} 
+size_t ev3_write( const char *fn, char *value )
+{
+	return ev3_write_binary( fn, value, strlen( value ));
+} 
+	FILE *f;
+	size_t result;
+
+	f = fopen( fn, "w" );
+	if ( f == NULL ) return ( 0 );
+
+	result = fwrite( data, 1, sz, f );
+	fclose( f );
+	return ( result ); 
+
 	return true;
 }
 
@@ -140,6 +167,11 @@ uint8_t RemoteRead(SRemote* pRemote)
 {
 	return 0;
 }
+
+
+//-----------------------------------------------------------------------------
+// Time
+//-----------------------------------------------------------------------------
 
 
 #ifdef WIN32

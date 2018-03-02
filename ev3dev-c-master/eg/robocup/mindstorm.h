@@ -8,19 +8,19 @@
 
 typedef enum
 {
-	OUTPUTPORT_0 = 0,
 	OUTPUTPORT_1 = 1,
 	OUTPUTPORT_2 = 2,
-	OUTPUTPORT_3 = 3
+	OUTPUTPORT_3 = 3,
+	OUTPUTPORT_4 = 4
 } EOutputPort;
 
 
 typedef enum
 {
-	INPUTPORT_0 = 0,
 	INPUTPORT_1 = 1,
 	INPUTPORT_2 = 2,
-	INPUTPORT_3 = 3
+	INPUTPORT_3 = 3,
+	INPUTPORT_4 = 4
 } EInputPort;
 
 
@@ -73,7 +73,8 @@ bool ServoSetPosition(SServo* pServo);
 // Keys
 //-----------------------------------------------------------------------------
 
-enum {
+enum
+{
 	EV3_KEY__NONE_ = 0,
 
 	EV3_KEY_UP     = 0x01L,
@@ -91,6 +92,22 @@ uint8_t KeysRead();
 //-----------------------------------------------------------------------------
 // IR Remote
 //-----------------------------------------------------------------------------
+
+enum {
+	IR_REMOTE__NONE_   = 0,
+
+	RED_UP             = 1,
+	RED_DOWN           = 2,
+	BLUE_UP            = 3,
+	BLUE_DOWN          = 4,
+	RED_UP_BLUE_UP     = 5,
+	RED_UP_BLUE_DOWN   = 6,
+	RED_DOWN_BLUE_UP   = 7,
+	RED_DOWN_BLUE_DOWN = 8,
+	BEACON_MODE_ON     = 9,
+	RED_UP_RED_DOWN    = 10,
+	BLUE_UP_BLUE_DOWN  = 11,
+};
 
 typedef struct
 {

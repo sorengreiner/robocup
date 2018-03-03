@@ -133,6 +133,9 @@ uint8_t KeysRead()
 
 bool RemoteOpen(SRemote* pRemote, EInputPort eInputPort)
 {
+    char command[] = "IR_REMOTE";
+    FILE* f = open("/sys/class/lego_sensor/sensor0/mode", O_WRONLY
+    
 sensor_set_mode( pool, LEGO_EV3_IR_IR_REMOTE );
 	char s[] = PATH_MODE;
 	*modp_uitoa10( sn, s + PATH_PREF_LEN ) = '/';

@@ -36,7 +36,7 @@ int main( void )
 			break;
 		}
 	
-		sleep_ms(10);
+		sleep_ms(1000);
 	}
 
 	KeysClose();

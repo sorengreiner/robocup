@@ -52,14 +52,14 @@ bool SensorInit(void)
             int n = read(fid, buffer, sizeof(buffer)-1);
             if(n > 0)
             {
-                printf("input: %s\n", buffer);
+                printf("input: %s", buffer);
                 int port = 0;
                 if(sscanf(buffer, "in%d:", &port) == 1)
                 {
                     if(port >= 1 && port <= 4)
                     {
                         g_SensorDetect[port - 1].filename = g_SensorFilenames[i];
-                        printf("Sensor %d at filename %s\n", port, g_SensorFilenames[i]);
+//                        printf("Sensor %d at filename %s\n", port, g_SensorFilenames[i]);
                     }
                 }
             }
@@ -68,7 +68,15 @@ bool SensorInit(void)
         }
     }
 
+    for(int i = 0; i < 4; i++)
+    {
+        int port = i + 1;
+        if(g_SensorDetect[i].filename)
+        {
+            printf("in%d '%s'\n", port, g_SensorDetect[i].filename);
+        }
 
+    }	
     
 }
 

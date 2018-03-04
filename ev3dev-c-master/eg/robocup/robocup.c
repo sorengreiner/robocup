@@ -9,6 +9,8 @@ int main( void )
 {
 	printf( "Robocup\n" );
 
+    SensorInit();
+    
 	if(!KeysOpen())
 	{
 		printf("keys wont open\n");

@@ -8,6 +8,73 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <linux/input.h>
+#include <string.h>
+#include <stdio.h>
+
+typedef struct
+{
+    EInputPort ePort;
+    const char* filename;
+} SSensorDetect;
+
+
+const char* g_SensorFilenames[] =
+{
+    "/sys/class/lego-sensor/sensor0",
+    "/sys/class/lego-sensor/sensor1",
+    "/sys/class/lego-sensor/sensor2",
+    "/sys/class/lego-sensor/sensor3",
+};
+
+
+SSensorDetect g_SensorDetect[4] =
+{
+    {INPUTPORT_1, 0},
+    {INPUTPORT_2, 0},
+    {INPUTPORT_3, 0},
+    {INPUTPORT_4, 0},
+};
+
+// Identify the attached sensors per in port
+bool SensorInit(void)
+{
+    char name[256];
+    for(int i = 0; i < 4; i++)
+    {
+        // test address of file
+        memset(name, 0, sizeof(name));
+        snprintf(name, sizeof(name) - 1 , "%s/address", g_SensorFilenames[i]);
+        int fid = open(name, O_RDONLY);
+        if(fid >= 0)
+        {
+            char buffer[256];
+            memset(buffer, 0, sizeof(buffer));
+            int n = read(fid, buffer, sizeof(buffer)-1);
+            if(n > 0)
+            {
+                printf("input: %s\n", buffer);
+                int port = 0;
+                if(sscanf(buffer, "in%d:", &port) == 1)
+                {
+                    if(port >= 1 && port <= 4)
+                    {
+                        g_SensorDetect[port - 1].filename = g_SensorFilenames[i];
+                        printf("Sensor %d at filename %s\n", port, g_SensorFilenames[i]);
+                    }
+                }
+            }
+ 
+            close(fid);
+        }
+    }
+
+
+    
+}
+
+
+
+
 
 //-----------------------------------------------------------------------------
 // Motor control
@@ -133,6 +200,7 @@ uint8_t KeysRead()
 
 bool RemoteOpen(SRemote* pRemote, EInputPort eInputPort)
 {
+   /* 
     char command[] = "IR_REMOTE";
     FILE* f = open("/sys/class/lego_sensor/sensor0/mode", O_WRONLY
     
@@ -158,7 +226,7 @@ size_t ev3_write( const char *fn, char *value )
 	result = fwrite( data, 1, sz, f );
 	fclose( f );
 	return ( result ); 
-
+*/
 	return true;
 }
 

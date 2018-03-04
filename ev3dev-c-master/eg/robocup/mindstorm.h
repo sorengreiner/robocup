@@ -17,14 +17,15 @@ typedef enum
 
 typedef enum
 {
-	INPUTPORT_1 = 1,
-	INPUTPORT_2 = 2,
-	INPUTPORT_3 = 3,
-	INPUTPORT_4 = 4
+	INPUTPORT_1 = 0,
+	INPUTPORT_2 = 1,
+	INPUTPORT_3 = 2,
+	INPUTPORT_4 = 3,
+	NUM_INPUTPORTS
 } EInputPort;
 
 
-bool SensorInit(void);
+bool SensorScan(void);
 
 //-----------------------------------------------------------------------------
 // Motor control

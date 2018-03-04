@@ -9,7 +9,7 @@ int main( void )
 {
 	printf( "Robocup\n" );
 
-    SensorInit();
+    SensorScan();
     
 	if(!KeysOpen())
 	{

@@ -391,6 +391,9 @@ int main( void )
 	tacho_run_forever( MOTOR_BOTH );
 	set_servo_position_sp(snLeft, 0);
 	set_servo_position_sp(snRight, 0);
+	sleep_ms(500);
+	set_servo_command_inx(snLeft, SERVO_FLOAT);
+	set_servo_command_inx(snRight, SERVO_FLOAT);
 	brick_uninit();
 
 	printf( "*** ( EV3 ) Bye! ***\n" );

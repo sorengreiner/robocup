@@ -13,7 +13,7 @@
 
 typedef struct
 {
-    EInputPort ePort;
+	int portno;
     const char* filename;
 } SSensorDetect;
 
@@ -27,19 +27,19 @@ const char* g_SensorFilenames[] =
 };
 
 
-SSensorDetect g_SensorDetect[4] =
+SSensorDetect g_SensorDetect[NUM_INPUTPORTS] =
 {
-    {INPUTPORT_1, 0},
-    {INPUTPORT_2, 0},
-    {INPUTPORT_3, 0},
-    {INPUTPORT_4, 0},
+    {1, 0},
+    {2, 0},
+    {3, 0},
+    {4, 0},
 };
 
 // Identify the attached sensors per in port
-bool SensorInit(void)
+bool SensorScan(void)
 {
-    char name[256];
-    for(int i = 0; i < 4; i++)
+    char name[128];
+    for(int i = 0; i < NUM_INPUTPORTS; i++)
     {
         // test address of file
         memset(name, 0, sizeof(name));
@@ -47,12 +47,12 @@ bool SensorInit(void)
         int fid = open(name, O_RDONLY);
         if(fid >= 0)
         {
-            char buffer[256];
+            char buffer[128];
             memset(buffer, 0, sizeof(buffer));
             int n = read(fid, buffer, sizeof(buffer)-1);
             if(n > 0)
             {
-                printf("input: %s", buffer);
+//                printf("input: %s", buffer);
                 int port = 0;
                 if(sscanf(buffer, "in%d:", &port) == 1)
                 {
@@ -68,6 +68,7 @@ bool SensorInit(void)
         }
     }
 
+	// summary
     for(int i = 0; i < 4; i++)
     {
         int port = i + 1;
@@ -76,12 +77,8 @@ bool SensorInit(void)
             printf("in%d '%s'\n", port, g_SensorDetect[i].filename);
         }
 
-    }	
-    
+    }	 
 }
-
-
-
 
 
 //-----------------------------------------------------------------------------
@@ -203,7 +200,6 @@ uint8_t KeysRead()
 //-----------------------------------------------------------------------------
 
 #define PATH_MODE  "/sys/class/lego-sensor/sensor///mode"
-
 
 
 bool RemoteOpen(SRemote* pRemote, EInputPort eInputPort)

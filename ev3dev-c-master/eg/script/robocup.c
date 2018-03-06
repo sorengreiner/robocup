@@ -1,23 +1,40 @@
+#include "robocup.h"
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-typedef enum
-{
-    AND = 0,
-    OR,
-    XOR
-} EOperator;
 
-typedef enum
+void SequenceInit(SSequence* pSequence)
 {
-    NIL = 0,
-    SPEED,
-    ODOMETER,
-    VALUE,
-} ENoun;
+	pSequence->eAction = NUM_ACTIONS;
+	pSequence->pAction = 0;
+	pSequence->noun0 = NUM_VARS;
+	pSequence->value0 = 0;
+	pSequence->noun1 = NUM_VARS;
+	pSequence->value1 = 0;
+
+	pSequence->eConditionA = NUM_COND;
+	pSequence->pConditionA = 0;
+	pSequence->left_noun0 = NUM_VARS;
+	pSequence->left_value0 = 0;
+	pSequence->eOpA = NUM_OP;
+	pSequence->left_noun1 = NUM_VARS;
+	pSequence->left_value1 = 0;
+
+	pSequence->eBooleanOperator = NUM_BOOLEANOPERATOR;
+
+	pSequence->eConditionB = NUM_COND;
+	pSequence->pConditionB = 0;
+	pSequence->right_noun0 = NUM_VARS;
+	pSequence->right_value0 = 0;
+	pSequence->eOpB = NUM_OP;
+	pSequence->right_noun1 = NUM_VARS;
+	pSequence->right_value1 = 0;
+}
+
 
 const char* g_NounName[] =
 {
@@ -36,21 +53,6 @@ void PrintNoun(int eNoun)
 }
 
 
-
-typedef struct
-{
-    bool (*pAction)(int noun0, float value0, int noun1, float value1); 
-    int noun0; float value0; int noun1; float value1;
-    
-    bool (*pConditionA)(int noun0, float value0, int noun1, float value1); 
-    int left_noun0; float left_value0; int left_noun1; float left_value1;
-    
-    EOperator eOperator;
-    
-    bool (*pConditionB)(int noun0, float value0, int noun1, float value1); 
-    int right_noun0; float right_value0; int right_noun1; float right_value1;
-} SSequence;
-
 // Condition functions
 
 bool False(int noun0, float value0, int noun1, float value1)
@@ -59,12 +61,6 @@ bool False(int noun0, float value0, int noun1, float value1)
 bool True(int noun0, float value0, int noun1, float value1)
 { return false; }
 
-bool Greater(int noun0, float value0, int noun1, float value1)
-{
-    printf("%f Greater %f", value0, value1);
-        
-    return value0 > value1;
-}
 
 bool DetectJunctionLeft(int noun0, float value0, int noun1, float value1)
 { 
@@ -83,6 +79,19 @@ bool Odometer(int noun0, float value0, int noun1, float value1)
     printf("Odometer ");
     return false; 
 }
+
+
+bool BranchLeft(int noun0, float value0, int noun1, float value1) { return true; }
+bool BranchRight(int noun0, float value0, int noun1, float value1) { return true; }
+bool JunctionLeft(int noun0, float value0, int noun1, float value1) { return true; }
+bool JunctionRight(int noun0, float value0, int noun1, float value1) { return true; }
+bool Line(int noun0, float value0, int noun1, float value1) { return true; }
+bool Equal(int noun0, float value0, int noun1, float value1) { return true; }
+bool NotEqual(int noun0, float value0, int noun1, float value1) { return true; }
+bool Greater(int noun0, float value0, int noun1, float value1) { return true; }
+bool GreaterEqual(int noun0, float value0, int noun1, float value1) { return true; }
+bool Less(int noun0, float value0, int noun1, float value1) { return true; }
+bool LessEqual(int noun0, float value0, int noun1, float value1) { return true; }
 
 
 // Action functions
@@ -110,10 +119,20 @@ bool SetValue(int noun0, float value0, int noun1, float value1)
 }
 
 
+bool Backward(int noun0, float value0, int noun1, float value1) { return true; }
+bool Follow(int noun0, float value0, int noun1, float value1) { return true; }
+bool FollowLeft(int noun0, float value0, int noun1, float value1) { return true; }
+bool FollowRight(int noun0, float value0, int noun1, float value1) { return true; }
+bool Forward(int noun0, float value0, int noun1, float value1) { return true; }
+bool Set(int noun0, float value0, int noun1, float value1) { return true; }
+bool TurnLeft(int noun0, float value0, int noun1, float value1) { return true; }
+bool TurnRight(int noun0, float value0, int noun1, float value1) { return true; }
+
+
 
 // Action( noun, value, noun, value) until Condition(noun, value, noun, value) AND/OR Condition(noun, value, noun value)
 
-
+/*
 SSequence g_SequenceSimple[] =
 {
     {FollowLine,        SPEED,      80, NIL, 0.0,     DetectJunctionLeft, NIL,  0.0, NIL,  0.0,    OR,           False, NIL, 0.0, NIL, 0.0}, // FollowLine SPEED=80 until DetectJunctionLeft()
@@ -159,7 +178,7 @@ bool UpdateProgram()
     printf("\n");
     return true;
 }
-
+*/
 typedef struct
 {
 	SSequence* pSequence;
@@ -167,72 +186,17 @@ typedef struct
 } SProgram;
 
 
-/*
 
-follow speed=80 until junctionleft
-follow speed=20 until branchleft
-set odometer=0
-followleft until odometer > 3.0
-follow speed=30 until junctionright
-turnright angle=90
-forward speed=10 until line
-set odometer=0
-backward speed=10 until odometer > 0.25
-turnright angle=90
-*/
-
-typedef enum
+typedef struct 
 {
-	K_NA = 0,
-	K_BRANCHLEFT,
-	K_BRANCHRIGHT,
-	K_JUNCTIONLEFT,
-	K_JUNCTIONRIGHT,
-	K_LINE,
-    K_BACKWARD,
-    K_FOLLOW,
-    K_FOLLOWLEFT,
-    K_FOLLOWRIGHT,
-    K_FORWARD,
-    K_SET,
-    K_TURNLEFT,
-    K_TURNRIGHT,
-    K_UNTIL,
-	K_CONST,
-	K_EQUAL,
-	K_GREATER,
-	K_GREATER_EQUAL,
-	K_LESS,
-	K_LESS_EQUAL,
-	K_END,
-	NUM_KEYWORDS
-} EKeyword;
+	const char* name;
+} SKeywordItem;
 
-
-const char* g_Keywords[] =
+SKeywordItem g_Keywords[NUM_KEYWORDS] =
 {
-	"NA",
-	"BRANCHLEFT",
-	"BRANCHRIGHT",
-	"JUNCTIONLEFT",
-	"JUNCTIONRIGHT",
-	"LINE",
-    "BACKWARD",
-    "FOLLOW",
-    "FOLLOWLEFT",
-    "FOLLOWRIGHT",
-    "FORWARD",
-    "SET",
-    "TURNLEFT",
-    "TURNRIGHT",
-    "UNTIL",
-	"CONST",
-	"=",
-	">",
-	">=",
-	"<",
-	"<=",
-	"#"
+	{"UNTIL"},
+	{"CONST"},
+	{"#"}
 };
 
 
@@ -240,33 +204,178 @@ EKeyword MatchKeyword(const char* token)
 {
 	for(int i = 0; i < NUM_KEYWORDS; i++)
 	{
-		if(strcasecmp(token, g_Keywords[i]) == 0)
+		if(strcasecmp(token, g_Keywords[i].name) == 0)
 		{
 			return (EKeyword)i;
 		}
 	}
-	return K_NA;
+	return NUM_KEYWORDS;
 }
 
 
-typedef enum
-{
-	V_NA = 0,
-	V_SPEED,
-	V_ODOMETER,
-	V_ANGLE,
-	NUM_VARS
-} EVar;
+//-----------------------------------------------------------------------------
+// Actions
+//-----------------------------------------------------------------------------
 
-const char* g_Vars[] =
+typedef struct 
 {
-	"NA",
-	"SPEED",
-	"ODOMETER",
-	"ANGLE",
+	const char* name;
+    bool (*pFunction)(int noun0, float value0, int noun1, float value1); 
+} SActionItem;
+
+SActionItem g_Actions[NUM_ACTIONS] =
+{
+	{"BACKWARD", 		Backward},
+	{"FOLLOW", 			Follow},
+	{"FOLLOWLEFT", 		FollowLeft},
+	{"FOLLOWRIGHT", 	FollowRight},
+	{"FORWARD", 		Forward},
+	{"SET", 			Set},
+	{"TURNLEFT", 		TurnLeft},
+	{"TURNRIGHT", 		TurnRight},
 };
 
-EVar MatchKeyValue(const char* token, float* value)
+
+EAction MatchAction(const char* token)
+{
+	for(int i = 0; i < NUM_ACTIONS; i++)
+	{
+		if(strcasecmp(token, g_Actions[i].name) == 0)
+		{
+			return (EAction)i;
+		}
+	}
+	return NUM_ACTIONS;
+}
+
+
+//-----------------------------------------------------------------------------
+// Conditions
+//-----------------------------------------------------------------------------
+
+typedef struct 
+{
+	const char* name;
+    bool (*pFunction)(int noun0, float value0, int noun1, float value1); 
+} SCondItem;
+
+SCondItem g_Conditions[NUM_COND] =
+{
+	{"BRANCHLEFT", 		BranchLeft},
+	{"BRANCHRIGHT", 	BranchRight},
+	{"JUNCTIONLEFT", 	JunctionLeft},
+	{"JUNCTIONRIGHT", 	JunctionRight},
+	{"LINE", 			Line}
+};
+
+ECond MatchCondition(const char* token)
+{
+	for(int i = 0; i < NUM_COND; i++)
+	{
+		if(strcasecmp(token, g_Conditions[i].name) == 0)
+		{
+			return (ECond)i;
+		}
+	}
+	return NUM_COND;
+}
+
+
+//-----------------------------------------------------------------------------
+// Operators
+//-----------------------------------------------------------------------------
+
+typedef struct 
+{
+	const char* name;
+    bool (*pFunction)(int noun0, float value0, int noun1, float value1); 
+} SOpItem;
+
+SOpItem g_Operators[NUM_OP] =
+{
+	{"==", 				Equal},
+	{"!=", 				NotEqual},
+	{">", 				Greater},
+	{">=", 				GreaterEqual},
+	{"<", 				Less},
+	{"<=", 				LessEqual},
+};
+
+EOp MatchOperator(const char* token)
+{
+	for(int i = 0; i < NUM_OP; i++)
+	{
+		if(strcasecmp(token, g_Operators[i].name) == 0)
+		{
+			return (EOp)i;
+		}
+	}
+	return NUM_OP;
+}
+
+
+//-----------------------------------------------------------------------------
+// Boolean Operators
+//-----------------------------------------------------------------------------
+
+typedef struct 
+{
+	const char* name;
+} SBoolOpItem;
+
+SBoolOpItem g_BooleanOperators[NUM_BOOLEANOPERATOR] =
+{
+	{"and"},
+	{"or"},
+	{"xor"}
+};
+
+EBooleanOperator MatchBooleanOperator(const char* token)
+{
+	for(int i = 0; i < NUM_BOOLEANOPERATOR; i++)
+	{
+		if(strcasecmp(token, g_BooleanOperators[i].name) == 0)
+		{
+			return (EBooleanOperator)i;
+		}
+	}
+	return NUM_BOOLEANOPERATOR;
+}
+
+
+//-----------------------------------------------------------------------------
+// Vars
+//-----------------------------------------------------------------------------
+
+typedef struct 
+{
+	const char* name;
+    float value; 
+} SVarItem;
+
+
+SVarItem g_Vars[] =
+{
+	{"NIL",			0.0 },
+	{"SPEED",		0.0 },
+	{"ODOMETER",	0.0 },
+	{"ANGLE",		0.0 },
+	{"TIME",		0.0 }
+};
+
+EVar MatchVar(const char* token)
+{
+	for(int i = 0; i < NUM_VARS; i++)
+	{
+		if(strcasecmp(token, g_Vars[i].name) == 0)
+		{
+			return (EVar)i;
+		}
+	}
+	return NUM_VARS;
+}
+
+EVar MatchKeyValue(const char* token, float* pValue)
 {
 	char* pe = strchr(token, '=');
 	char* pv = 0;
@@ -275,115 +384,137 @@ EVar MatchKeyValue(const char* token, float* value)
 		*pe = 0;
 		pv = pe + 1;
 	}
-
-	if(pv)
+	else
 	{
-		if(sscanf(pv, "%f", value) == 1)
-		{
-//			printf("value %f\n", *value);
-		}
+		return NUM_VARS;
+	}
+	
+	if(sscanf(pv, "%f", pValue) != 1)
+	{
+		return NUM_VARS;
 	}
 
 	for(int i = 0; i < NUM_VARS; i++)
 	{
-		if(strcasecmp(token, g_Vars[i]) == 0)
+		if(strcasecmp(token, g_Vars[i].name) == 0)
 		{
 			return (EVar)i;
 		}
 	}
-	return V_NA;
+
+	return NUM_VARS;
 }
 
-EVar MatchVar(const char* token)
+//-----------------------------------------------------------------------------
+/// Helper
+//-----------------------------------------------------------------------------
+
+
+void PrintAction(EAction eAction)
 {
-	for(int i = 0; i < NUM_VARS; i++)
+	if(eAction < NUM_ACTIONS)
 	{
-		if(strcasecmp(token, g_Vars[i]) == 0)
-		{
-			return (EVar)i;
-		}
+		printf("%s", g_Actions[eAction].name);
 	}
-	return V_NA;
-}
-
-
-
-typedef enum
-{
-	S_ACTION = 0,
-	S_KEYVALUE0,
-	S_KEYVALUE1,
-	S_UNTIL,
-	S_CONDITIONA,
-	S_COMPARISONA,
-	S_KEYVALUE2,
-	S_KEYVALUE3,
-	S_RIGHTA,
-	S_CONDITIONB,
-	S_COMPARISONB,
-	S_KEYVALUE4,
-	S_KEYVALUE5,
-	S_RIGHTB,
-	S_END,
-} ESyntax;
-
-
-bool Action(EKeyword eKeyword)
-{
-	switch(eKeyword)
+	else
 	{
-	case K_BACKWARD:
-    case K_FOLLOW:
-    case K_FOLLOWLEFT:
-    case K_FOLLOWRIGHT:
-    case K_FORWARD:
-    case K_SET:
-    case K_TURNLEFT:
-    case K_TURNRIGHT:
-		return true;
-	default:
-		return false;
+		printf("NA");
 	}
 }
 
-bool Comparison(EKeyword eKeyword)
+void PrintValue(EVar eVar, float value)
 {
-	switch(eKeyword)
+	if(eVar < NUM_VARS)
 	{
-	case K_EQUAL:
-	case K_GREATER:
-	case K_GREATER_EQUAL:
-	case K_LESS:
-	case K_LESS_EQUAL:
-		return true;
-	default:
-		return false;
+		printf("%s=%f", g_Vars[eVar].name, value);
 	}
-
+	else
+	{
+		printf("NA");
+	}
 }
 
-bool Condition(EKeyword eKeyword)
+void PrintCondition(ECond eCond)
 {
-	switch(eKeyword)
+	if(eCond < NUM_COND)
 	{
-	case K_BRANCHLEFT:
-	case K_BRANCHRIGHT:
-	case K_JUNCTIONLEFT:
-	case K_JUNCTIONRIGHT:
-	case K_LINE:
-		return true;
-	default:
-		return false;
+		printf("%s", g_Conditions[eCond].name);
 	}
+	else
+	{
+		printf("NA");
+	}
+}
 
+void PrintOperator(EOp eOp)
+{
+	if(eOp < NUM_OP)
+	{
+		printf("%s", g_Operators[eOp].name);
+	}
+	else
+	{
+		printf("NA");
+	}
+}
+
+void PrintBoolean(EBooleanOperator eBool)
+{
+	if(eBool < NUM_BOOLEANOPERATOR)
+	{
+		printf("%s", g_BooleanOperators[eBool].name);
+	}
+	else
+	{
+		printf("NA");
+	}
+}
+
+void SequencePrint(SSequence* pSequence)
+{
+	PrintAction(pSequence->eAction);
+	printf(" ");
+	PrintValue(pSequence->noun0, pSequence->value0);
+	printf(" ");
+	PrintValue(pSequence->noun1, pSequence->value1);
+	printf(" ");
+
+	printf("UNTIL ");
+
+	PrintCondition(pSequence->eConditionA);
+	printf(" ");
+	PrintValue(pSequence->left_noun0, pSequence->left_value0);
+	printf(" ");
+	PrintOperator(pSequence->eOpA);
+	printf(" ");
+	PrintValue(pSequence->left_noun1, pSequence->left_value1);
+	printf(" ");
+
+	PrintBoolean(pSequence->eBooleanOperator);
+	printf(" ");
+
+	PrintCondition(pSequence->eConditionB);
+	printf(" ");
+	PrintValue(pSequence->right_noun0, pSequence->right_value0);
+	printf(" ");
+	PrintOperator(pSequence->eOpB);
+	printf(" ");
+	PrintValue(pSequence->right_noun1, pSequence->right_value1);
+	printf("\n");
 }
 
 
-int ParseLine(char* in)
+
+int ParseLine(char* in, SSequence* pItem)
 {
 	ESyntax eSyntax = S_ACTION;
 	char* p = in;
 	// for each line parse the program
+
+//	SSequence item;
+	SequenceInit(pItem);
+//	SequencePrint(&item);
+
 	while(*p != 0)
 	{
 		char buffer[256];
@@ -404,21 +535,27 @@ int ParseLine(char* in)
 		{
 			memcpy(buffer, ps, len);
 			buffer[len] = 0;
-//			printf("  token %d: \"%s\"\n", len, buffer);
+//			printf("  token[%d]: '%s'\n", len, buffer);
 	
 			// Search keywords
 			EKeyword eKeyword = MatchKeyword(buffer);
+			EAction eAction = MatchAction(buffer);
+			ECond eCond = MatchCondition(buffer);
 			float value = 0;
 			EVar eKeyValue = MatchKeyValue(buffer, &value);
 			EVar eVar = MatchVar(buffer);
+			EOp eOp = MatchOperator(buffer);
+			EBooleanOperator eBooleanOperator = MatchBooleanOperator(buffer);
 
 			switch(eSyntax)
 			{
 			case S_ACTION:
-				if(Action(eKeyword))
+				if(eAction != NUM_ACTIONS)
 				{
 					eSyntax = S_KEYVALUE0;
-					printf("  ACTION=%s\n", g_Keywords[eKeyword]);
+//					printf("  ACTION=%s\n", g_Actions[eAction].name);
+					pItem->eAction = eAction;
+					pItem->pAction = g_Actions[eAction].pFunction;
 				}
 				else
 				{
@@ -429,12 +566,14 @@ int ParseLine(char* in)
 			case S_KEYVALUE0:
 				if(eKeyword == K_UNTIL)
 				{
-					printf("  UNTIL\n");
+//					printf("  UNTIL\n");
 					eSyntax = S_CONDITIONA;
 				}
-				else if(eKeyValue != V_NA)
+				else if(eKeyValue != NUM_VARS)
 				{
-					printf("  KV(%s,%f)\n", g_Vars[eKeyValue], value);
+//					printf("  KV(%s,%f)\n", g_Vars[eKeyValue].name, value);
+					pItem->noun0 = eKeyValue;
+					pItem->value0 = value;
 					eSyntax = S_KEYVALUE1;
 				}
 				else
@@ -447,16 +586,18 @@ int ParseLine(char* in)
 				{
 					eSyntax = S_CONDITIONA;
 				}
-				else if(eKeyValue != V_NA)
+				else if(eKeyValue != NUM_VARS)
 				{
-					printf("  KV(%s,%f)\n", g_Vars[eKeyValue], value);
+//					printf("  KV(%s,%f)\n", g_Vars[eKeyValue].name, value);
+					pItem->noun1 = eKeyValue;
+					pItem->value1 = value;
 					eSyntax = S_UNTIL;
 				}
 				break;
 			case S_UNTIL:
 				if(eKeyword == K_UNTIL)
 				{
-					printf("  UNTIL\n");
+//					printf("  UNTIL\n");
 					eSyntax = S_CONDITIONA;
 				}
 				else if(eKeyword == K_END)
@@ -470,20 +611,25 @@ int ParseLine(char* in)
 				}
 				break;
 			case S_CONDITIONA:
-				if(Condition(eKeyword))
+				if(eCond != NUM_COND)
 				{
 					eSyntax = S_KEYVALUE2;
-					printf("  CONDA=%s\n", g_Keywords[eKeyword]);
+//					printf("  CONDA=%s\n", g_Conditions[eCond].name);
+					pItem->eConditionA = eCond;
+					pItem->pConditionA = g_Conditions[eCond].pFunction;
 				}
-				else if(eVar != V_NA)
+				else if(eVar != NUM_VARS)
 				{
 					eSyntax = S_COMPARISONA;
-					printf("  V(%s)\n", g_Vars[eVar]);
+//					printf("  V(%s)\n", g_Vars[eVar].name);
+					pItem->left_noun0 = eVar;					
 				}
 				else if(sscanf(buffer, "%f", &value) == 1)
 				{
 					eSyntax = S_COMPARISONA;
-					printf("  F(%f)\n", value);
+//					printf("  F(%f)\n", value);
+					pItem->left_noun0 = V_NIL;					
+					pItem->left_value0 = value;					
 				}
 				else
 				{
@@ -492,58 +638,130 @@ int ParseLine(char* in)
 				}
 				break;
 			case S_KEYVALUE2:
-				if(eVar != V_NA)
+				if(eVar != NUM_VARS)
 				{
 					eSyntax = S_KEYVALUE3;
-					printf("  V(%s)\n", g_Vars[eVar]);
+//					printf("  V(%s)\n", g_Vars[eVar].name);
+					pItem->left_noun0 = eVar;					
 				}
 				else if(sscanf(buffer, "%f", &value) == 1)
 				{
 					eSyntax = S_KEYVALUE3;
-					printf("  F(%f)\n", value);
+//					printf("  F(%f)\n", value);
+					pItem->left_noun0 = V_NIL;					
+					pItem->left_value0 = value;					
 				}
 				break;
 			case S_KEYVALUE3:
-				if(eVar != V_NA)
+				if(eVar != NUM_VARS)
 				{
-					eSyntax = S_CONDITIONB;
-					printf("  V(%s)\n", g_Vars[eVar]);
+					eSyntax = S_BOOLEAN;
+//					printf("  V(%s)\n", g_Vars[eVar].name);
+					pItem->left_noun1 = eVar;
 				}
 				else if(sscanf(buffer, "%f", &value) == 1)
 				{
-					eSyntax = S_CONDITIONB;
-					printf("  F(%f)\n", value);
+					eSyntax = S_BOOLEAN;
+//					printf("  F(%f)\n", value);
+					pItem->left_noun1 = V_NIL;					
+					pItem->left_value1 = value;					
 				}
 				break;
 
-			case S_RIGHTA:
-				if(eVar != V_NA)
+			case S_BOOLEAN:
+				if(eBooleanOperator != NUM_BOOLEANOPERATOR)
 				{
 					eSyntax = S_CONDITIONB;
-					printf("  V(%s)\n", g_Vars[eVar]);
+//					printf("  BO(%s)\n", g_BooleanOperators[eBooleanOperator].name);
+					pItem->eBooleanOperator = eBooleanOperator;
 				}
-				else if(sscanf(buffer, "%f", &value) == 1)
-				{
-					eSyntax = S_CONDITIONB;
-					printf("  F(%f)\n", value);
-				}
-				else
-				{
-					printf("syntax error: expected right side of comparison\n");
-					return 0;
-				}
+
 				break;
 
 			case S_COMPARISONA:
-				if(Comparison(eKeyword))
+				if(eOp != NUM_OP)
 				{
-					eSyntax = S_RIGHTA;
-					printf("  COMPA=%s\n", g_Keywords[eKeyword]);
+					eSyntax = S_KEYVALUE3;
+//					printf("  OP(%s)\n", g_Operators[eOp]);
+					pItem->eOpA = eOp;
 				}
 				else
 				{
 					printf("syntax error: expected an comparison got %s\n", buffer);
 					return 0;
+				}
+				break;
+
+			case S_COMPARISONB:
+				if(eOp != NUM_OP)
+				{
+					eSyntax = S_KEYVALUE5;
+//					printf("  OP(%s)\n", g_Operators[eOp]);
+					pItem->eOpB = eOp;
+				}
+				else
+				{
+					printf("syntax error: expected an comparison got %s\n", buffer);
+					return 0;
+				}
+				break;
+
+			case S_CONDITIONB:
+				if(eCond != NUM_COND)
+				{
+					eSyntax = S_KEYVALUE4;
+//					printf("  CONDB=%s\n", g_Conditions[eCond].name);
+					pItem->eConditionB = eCond;
+					pItem->pConditionB = g_Conditions[eCond].pFunction;
+				}
+				else if(eVar != NUM_VARS)
+				{
+					eSyntax = S_COMPARISONB;
+//					printf("  V(%s)\n", g_Vars[eVar].name);
+					pItem->right_noun0 = eVar;					
+				}
+				else if(sscanf(buffer, "%f", &value) == 1)
+				{
+					eSyntax = S_COMPARISONB;
+//					printf("  F(%f)\n", value);
+					pItem->right_noun0 = V_NIL;					
+					pItem->right_value0 = value;					
+				}
+				else
+				{
+					printf("syntax error: expected a condition\n");
+					return 0;
+				}
+				break;
+
+			case S_KEYVALUE4:
+				if(eVar != NUM_VARS)
+				{
+					eSyntax = S_KEYVALUE5;
+//					printf("  V(%s)\n", g_Vars[eVar].name);
+					pItem->right_noun0 = eVar;					
+				}
+				else if(sscanf(buffer, "%f", &value) == 1)
+				{
+					eSyntax = S_KEYVALUE5;
+//					printf("  F(%f)\n", value);
+					pItem->right_noun0 = V_NIL;					
+					pItem->right_value0 = value;					
+				}
+				break;
+			case S_KEYVALUE5:
+				if(eVar != NUM_VARS)
+				{
+					eSyntax = S_END;
+//					printf("  V(%s)\n", g_Vars[eVar].name);
+					pItem->right_noun1 = eVar;
+				}
+				else if(sscanf(buffer, "%f", &value) == 1)
+				{
+					eSyntax = S_BOOLEAN;
+//					printf("  F(%f)\n", value);
+					pItem->right_noun1 = V_NIL;					
+					pItem->right_value1 = value;					
 				}
 				break;
 
@@ -591,7 +809,9 @@ SProgram* Compile(char* in)
 		buffer[len + 3] = 0;
 		printf("\nline: \"%s\"\n", buffer);
 
-		ParseLine(buffer);
+		SSequence item;
+		ParseLine(buffer, &item);
+		SequencePrint(&item);
 	}
 	return 0;
 }

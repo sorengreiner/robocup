@@ -31,6 +31,9 @@ typedef enum
 	V_ODOMETER,
 	V_ANGLE,
 	V_TIME,
+	V_HEADING,	// heading in degrees relative to north
+	V_XPOS,		// X position as eastward value relative to starting point
+	V_YPOS,		// Y position as eastward value relative to starting point
 	NUM_VARS
 } EVar;
 
@@ -52,6 +55,7 @@ typedef enum
     A_SET,
     A_TURNLEFT,
     A_TURNRIGHT,
+    A_WAIT,
 	NUM_ACTIONS
 } EAction;
 
@@ -69,10 +73,10 @@ typedef enum
 {
 	O_EQUAL = 0,
 	O_NOT_EQUAL,
-	O_GREATER,
 	O_GREATER_EQUAL,
-	O_LESS,
+	O_GREATER,
 	O_LESS_EQUAL,
+	O_LESS,
 	NUM_OP
 } EOp;
 
@@ -95,18 +99,22 @@ typedef enum
 	S_END
 } ESyntax;
 
+typedef struct
+{
+	int index;
+} SState;
 
 typedef struct _SSequence
 {
 	EAction eAction;
-    bool (*pAction)(int noun0, float value0, int noun1, float value1); 
+    bool (*pAction)(SState* s, int noun0, float value0, int noun1, float value1); 
     EVar noun0; 
 	float value0; 
 	EVar noun1; 
 	float value1;
     
 	ECond eConditionA;
-    bool (*pConditionA)(int noun0, float value0, int noun1, float value1); 
+    bool (*pConditionA)(SState* s, int noun0, float value0, int noun1, float value1); 
     EVar left_noun0; 
 	float left_value0; 
 	EOp eOpA;
@@ -116,7 +124,7 @@ typedef struct _SSequence
     EBooleanOperator eBooleanOperator;
     
 	ECond eConditionB;
-    bool (*pConditionB)(int noun0, float value0, int noun1, float value1); 
+    bool (*pConditionB)(SState* s, int noun0, float value0, int noun1, float value1); 
     EVar right_noun0; 
 	float right_value0; 
 	EOp eOpB;

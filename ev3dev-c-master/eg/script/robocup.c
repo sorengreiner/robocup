@@ -5,7 +5,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
+#include <math.h>
 
+#include <windows.h>
+
+#ifdef WIN32
+#include <windows.h>
+#elif _POSIX_C_SOURCE >= 199309L
+#include <time.h>   // for nanosleep
+#else
+#include <unistd.h> // for usleep
+#endif
+
+void sleep_ms(int milliseconds) // cross-platform sleep function
+{
+#ifdef WIN32
+    Sleep(milliseconds);
+#elif _POSIX_C_SOURCE >= 199309L
+    struct timespec ts;
+    ts.tv_sec = milliseconds / 1000;
+    ts.tv_nsec = (milliseconds % 1000) * 1000000;
+    nanosleep(&ts, NULL);
+#else
+    usleep(milliseconds * 1000);
+#endif
+}
+  
 
 void SequenceInit(SSequence* pSequence)
 {
@@ -38,149 +64,30 @@ void SequenceInit(SSequence* pSequence)
 }
 
 
-const char* g_NounName[] =
-{
-    "NIL",
-    "SPEED",
-    "ODOMETER",
-    "VALUE"
-};
-
-void PrintNoun(int eNoun)
-{
-    if(eNoun < 4)
-    {
-        printf("%s", g_NounName[eNoun]);
-    }
-}
-
-
-// Condition functions
-
-bool False(int noun0, float value0, int noun1, float value1)
-{ return false; }
-
-bool True(int noun0, float value0, int noun1, float value1)
-{ return false; }
-
-
-bool DetectJunctionLeft(int noun0, float value0, int noun1, float value1)
-{ 
-    printf("DetectJunctionLeft ");
-    return true; 
-}
-
-bool DetectBranchLeft(int noun0, float value0, int noun1, float value1)
-{ 
-    printf("DetectBranchLeft ");
-    return true; 
-}
-
-bool Odometer(int noun0, float value0, int noun1, float value1)
-{ 
-    printf("Odometer ");
-    return false; 
-}
-
-
-bool BranchLeft(int noun0, float value0, int noun1, float value1) { return true; }
-bool BranchRight(int noun0, float value0, int noun1, float value1) { return true; }
-bool JunctionLeft(int noun0, float value0, int noun1, float value1) { return true; }
-bool JunctionRight(int noun0, float value0, int noun1, float value1) { return true; }
-bool Line(int noun0, float value0, int noun1, float value1) { return true; }
-bool Equal(int noun0, float value0, int noun1, float value1) { return true; }
-bool NotEqual(int noun0, float value0, int noun1, float value1) { return true; }
-bool Greater(int noun0, float value0, int noun1, float value1) { return true; }
-bool GreaterEqual(int noun0, float value0, int noun1, float value1) { return true; }
-bool Less(int noun0, float value0, int noun1, float value1) { return true; }
-bool LessEqual(int noun0, float value0, int noun1, float value1) { return true; }
-
-
-// Action functions
-/*
-bool FollowLine(int noun0, float value0, int noun1, float value1)
-{
-    printf("FollowLine ");
-    PrintNoun(noun0);
-    printf("=%f ", value0);
-    PrintNoun(noun1);
-    printf("=%f ", value1);
-    return true;
-}
-
-bool FollowLineLeft(int noun0, float value0, int noun1, float value1)
-{
-    printf("FollowLineLeft ");
-    return true;
-}
-
-bool SetValue(int noun0, float value0, int noun1, float value1)
-{
-    printf("SetValue ");
-    return true;
-}
-*/
-
-bool Backward(int noun0, float value0, int noun1, float value1) { printf("Backward\n"); return true; }
-bool Follow(int noun0, float value0, int noun1, float value1) { printf("Follow\n"); return true; }
-bool FollowLeft(int noun0, float value0, int noun1, float value1) { printf("FollowLeft\n"); return true; }
-bool FollowRight(int noun0, float value0, int noun1, float value1) { printf("FollowRight\n"); return true; }
-bool Forward(int noun0, float value0, int noun1, float value1) { printf("Forward\n"); return true; }
-bool Set(int noun0, float value0, int noun1, float value1) { printf("Set\n"); return true; }
-bool TurnLeft(int noun0, float value0, int noun1, float value1) { printf("TurnLeft\n"); return true; }
-bool TurnRight(int noun0, float value0, int noun1, float value1) { printf("TurnRight\n"); return true; }
+bool BranchLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("BranchLeft "); return true; }
+bool BranchRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("BranchRight "); return true; }
+bool JunctionLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("JunctionLeft "); return true; }
+bool JunctionRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("JunctionRight "); return true; }
+bool Line(SState* s, int noun0, float value0, int noun1, float value1) { printf("Line "); return true; }
+bool Equal(SState* s, int noun0, float value0, int noun1, float value1);
+bool NotEqual(SState* s, int noun0, float value0, int noun1, float value1);
+bool Greater(SState* s, int noun0, float value0, int noun1, float value1);
+bool GreaterEqual(SState* s, int noun0, float value0, int noun1, float value1);
+bool Less(SState* s, int noun0, float value0, int noun1, float value1);
+bool LessEqual(SState* s, int noun0, float value0, int noun1, float value1);
 
 
 
-// Action( noun, value, noun, value) until Condition(noun, value, noun, value) AND/OR Condition(noun, value, noun value)
+bool Backward(SState* s, int noun0, float value0, int noun1, float value1) { printf("Backward "); return true; }
+bool Follow(SState* s, int noun0, float value0, int noun1, float value1);
+bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("FollowLeft "); return true; }
+bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("FollowRight "); return true; }
+bool Forward(SState* s, int noun0, float value0, int noun1, float value1);
+bool Set(SState* s, int noun0, float value0, int noun1, float value1);
+bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("TurnLeft "); return true; }
+bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("TurnRight "); return true; }
+bool Wait(SState* s, int noun0, float value0, int noun1, float value1);
 
-/*
-SSequence g_SequenceSimple[] =
-{
-    {FollowLine,        SPEED,      80, NIL, 0.0,     DetectJunctionLeft, NIL,  0.0, NIL,  0.0,    OR,           False, NIL, 0.0, NIL, 0.0}, // FollowLine SPEED=80 until DetectJunctionLeft()
-    {FollowLine,        SPEED,      20, NIL, 0.0,     DetectBranchLeft,   NIL,  0.0, NIL,  0.0,    OR,           False, NIL, 0.0, NIL, 0.0}, // FollowLine SPEED=20 until DetectBranchLeft()
-    {SetValue,          ODOMETER,   0,  NIL, 0.0,     0,                  NIL,  0.0, NIL,  0.0,    OR,           False, NIL, 0.0, NIL, 0.0}, // SetValue ODOMETER=0
-    {FollowLineLeft,    SPEED,      10, NIL, 0.0,     Greater,       ODOMETER,  0.0, VALUE, 3.0,   OR,           False, NIL, 0.0, NIL, 0.0}, // FollowLineLeft SPEED=10 until ODOMETER > 3.0
-};
-
-
-int index = 0;
-
-bool UpdateProgram()
-{
-    printf("line: %d ", index);
-    const SSequence* pSequence = &g_SequenceSimple[index];
-    
-    if(pSequence->pAction)
-    {
-        if(!pSequence->pAction(pSequence->noun0, pSequence->value0, pSequence->noun1, pSequence->value1))
-        {
-            printf("\n");
-            return false;
-        }
-
-        printf("until ");
-        
-        bool bEvalA = true;
-        bool bEvalB = true;
-        if(pSequence->pConditionA)
-        {
-            bEvalA = pSequence->pConditionA(pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1);
-        }
-        
-        if(bEvalA)
-        {
-            index++;
-            if(index > sizeof(g_SequenceSimple)/sizeof(g_SequenceSimple[0]))
-            {
-                return false;
-            }
-        }
-    }
-    printf("\n");
-    return true;
-}
-*/
 
 typedef struct
 {
@@ -223,7 +130,7 @@ EKeyword MatchKeyword(const char* token)
 typedef struct 
 {
 	const char* name;
-    bool (*pFunction)(int noun0, float value0, int noun1, float value1); 
+    bool (*pFunction)(SState* s, int noun0, float value0, int noun1, float value1); 
 } SActionItem;
 
 SActionItem g_Actions[NUM_ACTIONS] =
@@ -236,6 +143,7 @@ SActionItem g_Actions[NUM_ACTIONS] =
 	{"SET", 			Set},
 	{"TURNLEFT", 		TurnLeft},
 	{"TURNRIGHT", 		TurnRight},
+	{"WAIT", 			Wait},
 };
 
 
@@ -259,7 +167,7 @@ EAction MatchAction(const char* token)
 typedef struct 
 {
 	const char* name;
-    bool (*pFunction)(int noun0, float value0, int noun1, float value1); 
+    bool (*pFunction)(SState* s, int noun0, float value0, int noun1, float value1); 
 } SCondItem;
 
 SCondItem g_Conditions[NUM_COND] =
@@ -291,24 +199,24 @@ ECond MatchCondition(const char* token)
 typedef struct 
 {
 	const char* name;
-    bool (*pFunction)(int noun0, float value0, int noun1, float value1); 
+    bool (*pFunction)(SState* s, int noun0, float value0, int noun1, float value1); 
 } SOpItem;
 
 SOpItem g_Operators[NUM_OP] =
 {
 	{"==", 				Equal},
 	{"!=", 				NotEqual},
-	{">", 				Greater},
 	{">=", 				GreaterEqual},
-	{"<", 				Less},
+	{">", 				Greater},
 	{"<=", 				LessEqual},
+	{"<", 				Less},
 };
 
 EOp MatchOperator(const char* token)
 {
 	for(int i = 0; i < NUM_OP; i++)
 	{
-		if(strcasecmp(token, g_Operators[i].name) == 0)
+		if(strcmp(token, g_Operators[i].name) == 0)
 		{
 			return (EOp)i;
 		}
@@ -363,7 +271,10 @@ SVarItem g_Vars[] =
 	{"SPEED",		0.0 },
 	{"ODOMETER",	0.0 },
 	{"ANGLE",		0.0 },
-	{"TIME",		0.0 }
+	{"TIME",		0.0 },
+	{"HEADING",		0.0 },
+	{"XPOS",		0.0 },
+	{"YPOS",		0.0 }
 };
 
 EVar MatchVar(const char* token)
@@ -541,9 +452,9 @@ bool ParseLine(char* in, SSequence* pItem)
 			EAction eAction = MatchAction(buffer);
 			ECond eCond = MatchCondition(buffer);
 			float value = 0;
-			EVar eKeyValue = MatchKeyValue(buffer, &value);
-			EVar eVar = MatchVar(buffer);
 			EOp eOp = MatchOperator(buffer);
+			EVar eVar = MatchVar(buffer);
+			EVar eKeyValue = MatchKeyValue(buffer, &value);
 			EBooleanOperator eBooleanOperator = MatchBooleanOperator(buffer);
 
 			switch(eSyntax)
@@ -683,6 +594,7 @@ bool ParseLine(char* in, SSequence* pItem)
 					eSyntax = S_KEYVALUE3;
 //					printf("  OP(%s)\n", g_Operators[eOp]);
 					pItem->eOpA = eOp;
+					pItem->pConditionA = g_Operators[eOp].pFunction;
 				}
 				else
 				{
@@ -697,6 +609,7 @@ bool ParseLine(char* in, SSequence* pItem)
 					eSyntax = S_KEYVALUE5;
 //					printf("  OP(%s)\n", g_Operators[eOp]);
 					pItem->eOpB = eOp;
+					pItem->pConditionB = g_Operators[eOp].pFunction;
 				}
 				else
 				{
@@ -829,7 +742,6 @@ bool Compile(char* in, SProgram* pProgram)
         }
         pProgram->pLast->pNext = pSequence;
         pProgram->pLast = pSequence;
-//		SequencePrint(&item);
         
         line++;
 	}
@@ -841,22 +753,80 @@ void RunProgram(SProgram* pProgram)
 {
     printf("Run program\n");
     SSequence* pSequence = pProgram->pFirst;
+	SState s = {0};
+
+	uint32_t t0 = GetTickCount();
     while(pSequence)
     {
+//		printf("TIME: %f\n", g_Vars[V_TIME].value);
 //		SequencePrint(pSequence);
+        bool bProceed = true;
         if(pSequence->pAction)
         {
-            pSequence->pAction(pSequence->noun0, pSequence->value0, pSequence->noun1, pSequence->value1);
+            pSequence->pAction(&s, pSequence->noun0, pSequence->value0, pSequence->noun1, pSequence->value1);
             
-            bool bProceed = false;
-            if(pSequence->pConditionA)
+            if((pSequence->pConditionA != 0) && (pSequence->pConditionB != 0) && (pSequence->eBooleanOperator != NUM_BOOLEANOPERATOR))
             {
-                bool bEvalA = pSequence->pConditionA(pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1);
-                
+				switch(pSequence->eBooleanOperator)
+				{
+				case B_AND:
+					bProceed = pSequence->pConditionA(&s, pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1)
+						&& pSequence->pConditionB(&s, pSequence->right_noun0, pSequence->right_value0, pSequence->right_noun1, pSequence->right_value1);
+					break;
+
+				case B_OR:
+					bProceed = pSequence->pConditionA(&s, pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1)
+						|| pSequence->pConditionB(&s, pSequence->right_noun0, pSequence->right_value0, pSequence->right_noun1, pSequence->right_value1);
+					break;
+                }
             }
-            
-        }
-        pSequence = pSequence->pNext;
+			else if(pSequence->pConditionA != 0)
+			{
+				bProceed = pSequence->pConditionA(&s, pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1);
+			}
+			else
+			{
+			}
+		}
+
+		if(bProceed)
+		{
+        	pSequence = pSequence->pNext;
+			s.index = 0;
+		}
+		uint32_t t1 = t0;
+		t0 = GetTickCount();
+		float delta = (t0 - t1)/1000.0;
+
+		float angle = g_Vars[V_ANGLE].value;
+		float time = g_Vars[V_TIME].value;
+		float speed = g_Vars[V_SPEED].value;
+		float heading = g_Vars[V_HEADING].value;
+		float odometer = g_Vars[V_ODOMETER].value;
+		float x = g_Vars[V_XPOS].value;
+		float y = g_Vars[V_YPOS].value;
+
+		// Update time variable
+		time += delta;
+
+		// Update heading and pos as approximated predicted values
+		heading += delta*angle;
+		heading = fmodf(heading, 360.0);
+		odometer += delta*speed;
+		x += delta*speed*cosf(3.14159*heading/180.0);
+		y += delta*speed*sinf(3.14159*heading/180.0);
+
+		g_Vars[V_ANGLE].value = angle;
+		g_Vars[V_TIME].value = time;
+		g_Vars[V_SPEED].value = speed;
+		g_Vars[V_HEADING].value = heading;
+		g_Vars[V_ODOMETER].value = odometer;
+		g_Vars[V_XPOS].value = x;
+		g_Vars[V_YPOS].value = y;
+
+		printf("time=%f heading=%f odometer=%f x=%f y=%f\n", time, heading, odometer, x, y);
+
+		sleep_ms(10);
     }
 }
 
@@ -910,16 +880,205 @@ int main(int argc, char* argv[])
 		free(p);
 		fclose(file);
 	}
-/*
-    UpdateProgram();
-    UpdateProgram();
-    UpdateProgram();
-    UpdateProgram();
-    UpdateProgram();
-    UpdateProgram();
-    UpdateProgram();
-    UpdateProgram();
-*/
     return 0;
+}
+
+
+bool Follow(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
+	if(s->index == 0)
+	{
+		printf("Follow\n");
+		if(noun0 < NUM_VARS)
+		{
+			g_Vars[noun0].value = value0;
+		}
+
+		if(noun1 < NUM_VARS)
+		{
+			g_Vars[noun1].value = value1;
+		}
+		s->index++;
+	}
+	else
+	{
+		g_Vars[noun0].value += 1;
+	}
+	return false;
+}
+
+
+bool Forward(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
+	if(s->index == 0)
+	{
+		printf("Forward\n");
+		if(noun0 < NUM_VARS)
+		{
+			g_Vars[noun0].value = value0;
+		}
+
+		if(noun1 < NUM_VARS)
+		{
+			g_Vars[noun1].value = value1;
+		}
+		s->index++;
+	}
+
+	return false;
+}
+
+
+bool Set(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
+	if(s->index == 0)
+	{
+		printf("Set\n");
+		if(noun0 < NUM_VARS)
+		{
+			g_Vars[noun0].value = value0;
+		}
+
+		if(noun1 < NUM_VARS)
+		{
+			g_Vars[noun1].value = value1;
+		}
+		s->index++;
+	}
+	return true;
+}
+
+
+bool Wait(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
+	if(s->index == 0)
+	{
+		printf("Wait\n");
+		if(noun0 < NUM_VARS)
+		{
+			g_Vars[noun0].value = value0;
+		}
+
+		if(noun1 < NUM_VARS)
+		{
+			g_Vars[noun1].value = value1;
+		}
+		s->index++;
+	}
+	return false;
+}
+
+
+bool Equal(SState* s, int noun0, float value0, int noun1, float value1)
+{ 
+	float left = value0;
+	float right = value1;
+
+	if(noun0 < NUM_VARS && noun0 != V_NIL)
+	{
+		left = g_Vars[noun0].value;
+	}
+
+	if(noun1 < NUM_VARS && noun1 != V_NIL)
+	{
+		right = g_Vars[noun1].value;
+	}
+
+	return left == right; 
+}
+
+bool NotEqual(SState* s, int noun0, float value0, int noun1, float value1)
+{ 
+//	printf("NotEqual "); 
+	float left = value0;
+	float right = value1;
+
+	if(noun0 < NUM_VARS && noun0 != V_NIL)
+	{
+		left = g_Vars[noun0].value;
+	}
+
+	if(noun1 < NUM_VARS && noun1 != V_NIL)
+	{
+		right = g_Vars[noun1].value;
+	}
+
+	return left != right; 
+}
+
+bool GreaterEqual(SState* s, int noun0, float value0, int noun1, float value1)
+{ 
+//	printf("GreaterEqual "); 
+	float left = value0;
+	float right = value1;
+
+	if(noun0 < NUM_VARS && noun0 != V_NIL)
+	{
+		left = g_Vars[noun0].value;
+	}
+
+	if(noun1 < NUM_VARS && noun1 != V_NIL)
+	{
+		right = g_Vars[noun1].value;
+	}
+
+	return left >= right; 
+}
+
+bool Greater(SState* s, int noun0, float value0, int noun1, float value1)
+{ 
+//	printf("Greater "); 
+	float left = value0;
+	float right = value1;
+
+	if(noun0 < NUM_VARS && noun0 != V_NIL)
+	{
+		left = g_Vars[noun0].value;
+	}
+
+	if(noun1 < NUM_VARS && noun1 != V_NIL)
+	{
+		right = g_Vars[noun1].value;
+	}
+
+	return left > right; 
+}
+
+bool Less(SState* s, int noun0, float value0, int noun1, float value1)
+{ 
+//	printf("Less "); 
+	float left = value0;
+	float right = value1;
+
+	if(noun0 < NUM_VARS && noun0 != V_NIL)
+	{
+		left = g_Vars[noun0].value;
+	}
+
+	if(noun1 < NUM_VARS && noun1 != V_NIL)
+	{
+		right = g_Vars[noun1].value;
+	}
+
+	return left < right; 
+}
+
+bool LessEqual(SState* s, int noun0, float value0, int noun1, float value1)
+{ 
+//	printf("LessEqual "); 
+	float left = value0;
+	float right = value1;
+
+	if(noun0 < NUM_VARS && noun0 != V_NIL)
+	{
+		left = g_Vars[noun0].value;
+	}
+
+	if(noun1 < NUM_VARS && noun1 != V_NIL)
+	{
+		right = g_Vars[noun1].value;
+	}
+
+	return left <= right; 
 }
 

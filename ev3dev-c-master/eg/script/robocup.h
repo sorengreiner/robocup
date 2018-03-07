@@ -96,7 +96,7 @@ typedef enum
 } ESyntax;
 
 
-typedef struct
+typedef struct _SSequence
 {
 	EAction eAction;
     bool (*pAction)(int noun0, float value0, int noun1, float value1); 
@@ -122,6 +122,8 @@ typedef struct
 	EOp eOpB;
 	EVar right_noun1; 
 	float right_value1;
+    
+    struct _SSequence* pNext;
 } SSequence;
 
 void SequenceInit(SSequence* pSequence);

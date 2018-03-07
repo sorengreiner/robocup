@@ -33,6 +33,8 @@ void SequenceInit(SSequence* pSequence)
 	pSequence->eOpB = NUM_OP;
 	pSequence->right_noun1 = NUM_VARS;
 	pSequence->right_value1 = 0;
+    
+    pSequence->pNext = 0;
 }
 
 
@@ -95,7 +97,7 @@ bool LessEqual(int noun0, float value0, int noun1, float value1) { return true; 
 
 
 // Action functions
-
+/*
 bool FollowLine(int noun0, float value0, int noun1, float value1)
 {
     printf("FollowLine ");
@@ -117,16 +119,16 @@ bool SetValue(int noun0, float value0, int noun1, float value1)
     printf("SetValue ");
     return true;
 }
+*/
 
-
-bool Backward(int noun0, float value0, int noun1, float value1) { return true; }
-bool Follow(int noun0, float value0, int noun1, float value1) { return true; }
-bool FollowLeft(int noun0, float value0, int noun1, float value1) { return true; }
-bool FollowRight(int noun0, float value0, int noun1, float value1) { return true; }
-bool Forward(int noun0, float value0, int noun1, float value1) { return true; }
-bool Set(int noun0, float value0, int noun1, float value1) { return true; }
-bool TurnLeft(int noun0, float value0, int noun1, float value1) { return true; }
-bool TurnRight(int noun0, float value0, int noun1, float value1) { return true; }
+bool Backward(int noun0, float value0, int noun1, float value1) { printf("Backward\n"); return true; }
+bool Follow(int noun0, float value0, int noun1, float value1) { printf("Follow\n"); return true; }
+bool FollowLeft(int noun0, float value0, int noun1, float value1) { printf("FollowLeft\n"); return true; }
+bool FollowRight(int noun0, float value0, int noun1, float value1) { printf("FollowRight\n"); return true; }
+bool Forward(int noun0, float value0, int noun1, float value1) { printf("Forward\n"); return true; }
+bool Set(int noun0, float value0, int noun1, float value1) { printf("Set\n"); return true; }
+bool TurnLeft(int noun0, float value0, int noun1, float value1) { printf("TurnLeft\n"); return true; }
+bool TurnRight(int noun0, float value0, int noun1, float value1) { printf("TurnRight\n"); return true; }
 
 
 
@@ -179,10 +181,11 @@ bool UpdateProgram()
     return true;
 }
 */
+
 typedef struct
 {
-	SSequence* pSequence;
-	int sequenceCount;
+	SSequence* pFirst;
+	SSequence* pLast;
 } SProgram;
 
 
@@ -505,15 +508,11 @@ void SequencePrint(SSequence* pSequence)
 
 
 
-int ParseLine(char* in, SSequence* pItem)
+bool ParseLine(char* in, SSequence* pItem)
 {
 	ESyntax eSyntax = S_ACTION;
 	char* p = in;
 	// for each line parse the program
-
-//	SSequence item;
-	SequenceInit(pItem);
-//	SequencePrint(&item);
 
 	while(*p != 0)
 	{
@@ -560,7 +559,7 @@ int ParseLine(char* in, SSequence* pItem)
 				else
 				{
 					printf("syntax error: expected an action got %s\n", buffer);
-					return 0;
+					return false;
 				}
 				break;
 			case S_KEYVALUE0:
@@ -607,7 +606,7 @@ int ParseLine(char* in, SSequence* pItem)
 				else
 				{
 					printf("syntax error: expected until\n");
-					return 0;
+					return false;
 				}
 				break;
 			case S_CONDITIONA:
@@ -634,7 +633,7 @@ int ParseLine(char* in, SSequence* pItem)
 				else
 				{
 					printf("syntax error: expected a condition\n");
-					return 0;
+					return false;
 				}
 				break;
 			case S_KEYVALUE2:
@@ -688,7 +687,7 @@ int ParseLine(char* in, SSequence* pItem)
 				else
 				{
 					printf("syntax error: expected an comparison got %s\n", buffer);
-					return 0;
+					return false;
 				}
 				break;
 
@@ -702,7 +701,7 @@ int ParseLine(char* in, SSequence* pItem)
 				else
 				{
 					printf("syntax error: expected an comparison got %s\n", buffer);
-					return 0;
+					return false;
 				}
 				break;
 
@@ -730,7 +729,7 @@ int ParseLine(char* in, SSequence* pItem)
 				else
 				{
 					printf("syntax error: expected a condition\n");
-					return 0;
+					return false;
 				}
 				break;
 
@@ -768,7 +767,7 @@ int ParseLine(char* in, SSequence* pItem)
 			case S_END:
 				if(eKeyword == K_END)
 				{
-					return 0;
+					return false;
 				}
 				printf("syntax error: missing end\n");
 				break;
@@ -784,14 +783,18 @@ int ParseLine(char* in, SSequence* pItem)
 		}
 	}
 
-	return 0;
+	return true;
 }
 
 
-SProgram* Compile(char* in)
+bool Compile(char* in, SProgram* pProgram)
 {
+    pProgram->pFirst = 0;
+    pProgram->pLast = 0;
+    
 	char* p = in;
 	// for each line parse the program
+    int line = 1;
 	while(*p != 0)
 	{
 		char buffer[256];
@@ -807,13 +810,79 @@ SProgram* Compile(char* in)
 		buffer[len + 1] = '#';
 		buffer[len + 2] = ' ';
 		buffer[len + 3] = 0;
-		printf("\nline: \"%s\"\n", buffer);
+//		printf("\nline: \"%s\"\n", buffer);
 
 		SSequence item;
-		ParseLine(buffer, &item);
-		SequencePrint(&item);
+        SequenceInit(&item);
+		if(!ParseLine(buffer, &item))
+        {
+            printf("error parsing program line:%d\n", line);
+            return false;
+        }
+        
+        SSequence* pSequence = malloc(sizeof(SSequence));
+        *pSequence = item;
+        if(pProgram->pFirst == 0)
+        {
+            pProgram->pFirst = pSequence;
+            pProgram->pLast = pSequence;
+        }
+        pProgram->pLast->pNext = pSequence;
+        pProgram->pLast = pSequence;
+//		SequencePrint(&item);
+        
+        line++;
 	}
-	return 0;
+	return true;
+}
+
+
+void RunProgram(SProgram* pProgram)
+{
+    printf("Run program\n");
+    SSequence* pSequence = pProgram->pFirst;
+    while(pSequence)
+    {
+//		SequencePrint(pSequence);
+        if(pSequence->pAction)
+        {
+            pSequence->pAction(pSequence->noun0, pSequence->value0, pSequence->noun1, pSequence->value1);
+            
+            bool bProceed = false;
+            if(pSequence->pConditionA)
+            {
+                bool bEvalA = pSequence->pConditionA(pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1);
+                
+            }
+            
+        }
+        pSequence = pSequence->pNext;
+    }
+}
+
+
+void PrintProgram(SProgram* pProgram)
+{
+    printf("Print program\n");
+    SSequence* pSequence = pProgram->pFirst;
+    while(pSequence)
+    {
+		SequencePrint(pSequence);
+        pSequence = pSequence->pNext;
+    }
+}
+
+
+void DeleteProgram(SProgram* pProgram)
+{
+    printf("Delete program\n");
+    SSequence* pSequence = pProgram->pFirst;
+    while(pSequence)
+    {
+        SSequence* p = pSequence;
+        pSequence = pSequence->pNext;
+        free(p);
+    }
 }
 
 
@@ -829,7 +898,15 @@ int main(int argc, char* argv[])
 		char* p = malloc(size + 1);
 		int n = fread(p, 1, size, file);
 		p[n] = 0;
-		SProgram* pProgram = Compile(p);
+        SProgram program;
+		if(Compile(p, &program))
+        {
+            // Run program
+            PrintProgram(&program);
+            RunProgram(&program);
+            
+            DeleteProgram(&program);
+        }
 		free(p);
 		fclose(file);
 	}

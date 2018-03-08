@@ -44,3 +44,25 @@ bool Forward(SState* s, int noun0, float value0, int noun1, float value1)
 	return false;
 }
 
+
+
+bool Backward(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
+	if(s->index == 0)
+	{
+		printf("Backward\n");
+		if(noun0 < NUM_VARS)
+		{
+			SetVar(noun0, value0);
+		}
+
+		if(noun1 < NUM_VARS)
+		{
+			SetVar(noun1, value1);
+		}
+		s->index++;
+	}
+
+	return false;
+}
+

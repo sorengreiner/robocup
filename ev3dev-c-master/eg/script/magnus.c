@@ -88,7 +88,6 @@ bool JunctionRight(SState* s, int noun0, float value0, int noun1, float value1) 
 bool Line(SState* s, int noun0, float value0, int noun1, float value1) { printf("Line "); return true; }
 
 
-bool Backward(SState* s, int noun0, float value0, int noun1, float value1) { printf("Backward "); return true; }
 bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("FollowLeft "); return true; }
 bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("FollowRight "); return true; }
 bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("TurnLeft "); return true; }

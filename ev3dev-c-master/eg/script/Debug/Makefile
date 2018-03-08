@@ -5,7 +5,7 @@ OBJECTS_C = robocup.o magnus.o simulator.o
 
 FLAGS_C = -std=gnu99 -O2
 
-FLAGS_LINKER = -lm -lev3dev-c -pthread
+FLAGS_LINKER = -lm -pthread
 
 HEADERS =
 
@@ -13,7 +13,7 @@ INCLUDES = -I..
 
 VPATH = ..
 
-CC = arm-linux-gnueabi-gcc
+CC = gcc
 
 all: $(PROGRAM)
 

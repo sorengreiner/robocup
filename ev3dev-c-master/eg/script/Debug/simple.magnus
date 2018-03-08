@@ -1,0 +1,22 @@
+follow speed=80 until junctionleft
+follow speed=20 until branchleft
+set odometer=0
+followleft until odometer > 3.0
+follow speed=30 until junctionright
+turnright angle=90
+forward speed=10 until line
+set odometer=0
+backward speed=10 until odometer > 0.25
+turnright angle=90
+set odometer=0
+follow speed=65 until odometer > 3.0
+follow speed=40 until junctionright
+turnright angle=90
+set odometer=0
+follow speed=15 until odometer > 2.0
+set odometer=0
+forward speed=10 until odometer > 0.5
+turnleft angle=90
+set odometer=0
+forward speed=10 until odometer > 1.0
+

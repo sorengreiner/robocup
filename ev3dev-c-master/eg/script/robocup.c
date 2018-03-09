@@ -106,7 +106,7 @@ bool RobocupInit( void )
 		max_speed = tacho_get_max_speed( MOTOR_LEFT, 0 );
 		tacho_reset( MOTOR_BOTH );
 	} 
-	printf("%s Detecting motors at B and C ", bDetectMotors ? "[  OK  ]" : "[FAILED]");
+	printf("%s Detecting motors at B and C\n", bDetectMotors ? "[  OK  ]" : "[FAILED]");
 
 	ev3_servo_init();
 /*
@@ -130,7 +130,7 @@ bool RobocupInit( void )
 		set_servo_position_sp( snRight, 0 );
 		set_servo_command_inx( snRight, SERVO_RUN);
 	} 
-	printf("%s Detecting servo right ", bDetectServoRight ? "[  OK  ]" : "[FAILED]");
+	printf("%s Detecting servo right\n", bDetectServoRight ? "[  OK  ]" : "[FAILED]");
 
 	// Detect servo for front left wheel
 	bool bDetectServoLeft = false;
@@ -139,7 +139,7 @@ bool RobocupInit( void )
 		set_servo_position_sp( snLeft, 0 );
 		set_servo_command_inx(snLeft, SERVO_RUN);
 	}
-	printf("%s Detecting servo left ", bDetectServoLeft ? "[  OK  ]" : "[FAILED]");
+	printf("%s Detecting servo left\n", bDetectServoLeft ? "[  OK  ]" : "[FAILED]");
 
 	bool bDetectServoBatteryLevel = false;
 	float battery = 0.0;
@@ -150,7 +150,7 @@ bool RobocupInit( void )
 		float battery = sensor_get_value0(rc, 0);		
 		printf("battery %f mv\n", battery);
 	}
-	printf("%s Detecting servo battery ", bDetectServoBatteryLevel ? "[  OK  ]" : "[FAILED]");
+	printf("%s Detecting servo battery\n", bDetectServoBatteryLevel ? "[  OK  ]" : "[FAILED]");
 
 	return bDetectMotors && bDetectServoRight && bDetectServoLeft && bDetectServoBatteryLevel;
 }
@@ -255,6 +255,11 @@ bool Backward(SState* s, int noun0, float value0, int noun1, float value1)
 
 int main(int argc, char* argv[])
 {
+	if(!brick_init())
+	{
+		return 1;
+	}
+
 	RobocupInit();
 
 	if(argc > 1)
@@ -279,5 +284,12 @@ int main(int argc, char* argv[])
 		free(p);
 		fclose(file);
 	}
+
+	tacho_set_speed_sp( MOTOR_BOTH, 0 );
+	tacho_run_forever( MOTOR_BOTH );
+	set_servo_command_inx(snLeft, SERVO_FLOAT);
+	set_servo_command_inx(snRight, SERVO_FLOAT);	
+
+	brick_uninit();	
     return 0;
 }

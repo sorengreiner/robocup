@@ -23,8 +23,8 @@ POOL_T rc;
 uint8_t snRight;
 uint8_t snLeft;
 
-float speed = 0.0f;
-float angle = 0.0f;
+//float speed = 0.0f;
+//float angle = 0.0f;
 int leftCenter = -10;
 int rightCenter = 3;
 SCar car;
@@ -153,6 +153,99 @@ bool RobocupInit( void )
 	printf("%s Detecting servo battery ", bDetectServoBatteryLevel ? "[  OK  ]" : "[FAILED]");
 
 	return bDetectMotors && bDetectServoRight && bDetectServoLeft && bDetectServoBatteryLevel;
+}
+
+void UpdateCar(float speed, float angle)
+{
+	CarComputeTurningAngle(&car, angle, speed);
+
+	int motorSetpointLeft = -(int)(max_speed * car.fBackWheelLeftSpeed / 100); 
+	int motorSetpointRight = -(int)(max_speed * car.fBackWheelRightSpeed / 100); 
+	tacho_set_speed_sp( MOTOR_LEFT, motorSetpointLeft );
+	tacho_set_speed_sp( MOTOR_RIGHT, motorSetpointRight );
+	tacho_run_forever( MOTOR_BOTH ); 		
+
+	int servoLeftSp = AngleToServoLeft(car.fFrontWheelLeftAngle);
+	int servoRightSp = AngleToServoRight(car.fFrontWheelRightAngle); 
+	set_servo_position_sp(snLeft, servoLeftSp);
+	set_servo_position_sp(snRight, servoRightSp);
+}
+
+//-----------------------------------------------------------------------------
+// Script handler functions
+//-----------------------------------------------------------------------------
+
+
+bool Follow(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
+	if(s->index == 0)
+	{
+		printf("Follow\n");
+		if(noun0 < NUM_VARS)
+		{
+			SetVar(noun0, value0);
+		}
+
+		if(noun1 < NUM_VARS)
+		{
+			SetVar(noun1, value1);
+		}
+		s->index++;
+	}
+
+	return false;
+}
+
+
+bool Forward(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
+	if(s->index == 0)
+	{
+		printf("Forward\n");
+		if(noun0 < NUM_VARS)
+		{
+			SetVar(noun0, value0);
+		}
+
+		if(noun1 < NUM_VARS)
+		{
+			SetVar(noun1, value1);
+		}
+
+		float fSpeed = GetVar(V_SPEED);
+		float fAngle = GetVar(V_ANGLE);
+		UpdateCar(fSpeed, fAngle);
+
+		s->index++;
+	}
+
+	return false;
+}
+
+
+bool Backward(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
+	if(s->index == 0)
+	{
+		printf("Backward\n");
+		if(noun0 < NUM_VARS)
+		{
+			SetVar(noun0, value0);
+		}
+
+		if(noun1 < NUM_VARS)
+		{
+			SetVar(noun1, value1);
+		}
+
+		float fSpeed = GetVar(V_SPEED);
+		float fAngle = GetVar(V_ANGLE);
+		UpdateCar(-fSpeed, fAngle);
+
+		s->index++;
+	}
+
+	return false;
 }
 
 

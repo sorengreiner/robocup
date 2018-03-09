@@ -1,3 +1,0 @@
-set odometer=0
-forward speed=0.5 time=0 until odometer >= 1.0
-forward speed=0.2 angle=45 until odometer >= 2.0 or time > 5.5

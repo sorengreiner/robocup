@@ -9,7 +9,7 @@ FLAGS_LINKER = -lm -lev3dev-c -pthread
 
 HEADERS =
 
-INCLUDES = -I..
+INCLUDES = -I.. -I../../../source/ev3
 
 VPATH = ..
 

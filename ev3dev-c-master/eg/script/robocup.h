@@ -5,4 +5,19 @@
 #include <stdint.h>
 
 
+typedef struct 
+{
+	float fCarLength;
+	float fCarWidth;
+
+	float fAngle;
+	float fSpeed;
+
+	float fFrontWheelLeftAngle;
+	float fFrontWheelRightAngle;
+	float fBackWheelLeftSpeed;
+	float fBackWheelRightSpeed;
+} SCar;
+
+
 #endif

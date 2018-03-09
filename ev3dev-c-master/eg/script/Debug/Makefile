@@ -1,7 +1,7 @@
 
 PROGRAM = roborun
 
-OBJECTS_C = robocup.o magnus.o simulator.o
+OBJECTS_C = test.o magnus.o simulator.o
 
 FLAGS_C = -std=gnu99 -O2
 

@@ -1,5 +1,5 @@
 follow speed=80 until junctionleft
-follow speed=20 until branchleft
+follow speed=25 until branchleft
 set odometer=0
 followleft until odometer > 3.0
 follow speed=30 until junctionright

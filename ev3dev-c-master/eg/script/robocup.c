@@ -229,17 +229,23 @@ float TachoToMeter(int tacho)
 	return meter;
 }
 
+
 void UpdateVars(float delta)
 {
+	float time = GetVar(V_TIME);
 	// Update odometer
-	int tachoLeft;
-	int tachoRight;
-	get_tacho_position( MOTOR_LEFT, &tachoLeft );
-	get_tacho_position( MOTOR_RIGHT, &tachoRight );
-	float distanceLeft = TachoToMeter(tachoLeft);
-	float distanceRight = TachoToMeter(tachoRight);
+	int tachoLeft = tacho_get_position( MOTOR_LEFT, 0 );
+	int tachoRight = tacho_get_position( MOTOR_RIGHT, 0 );
+//	printf("tacho: %d, %d\n", tachoLeft, tachoRight);
+	float distanceLeft = TachoToMeter(-tachoLeft);
+	float distanceRight = TachoToMeter(-tachoRight);
 	float distance = (distanceLeft + distanceRight)/2;
+//	printf("d:%f dl:%f dr:%f\n", distance, distanceLeft, distanceRight);
 	SetVar(V_ODOMETER, distance);
+
+	time += delta;
+
+	SetVar(V_TIME, time);
 
 }
 

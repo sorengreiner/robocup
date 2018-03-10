@@ -1,21 +1,20 @@
 set odometer=0
 set time=0
-set angle=0
-forward speed=10 angle=0 until odometer >= 0.5
+forward speed=20 angle=0 until odometer >= 0.5
 set odometer=0
-forward speed=5 angle=24.83 until odometer >= 0.785
+forward speed=10 angle=24.83 until odometer >= 0.78
 set odometer=0
-forward speed=10 angle=0 until odometer >= 0.5
+forward speed=20 angle=0 until odometer >= 0.5
 set odometer=0
-forward speed=5 angle=24.83 until odometer >= 0.785
+forward speed=10 angle=24.83 until odometer >= 0.78
 set odometer=0
-forward speed=10 angle=0 until odometer >= 0.5
+forward speed=20 angle=0 until odometer >= 0.5
 set odometer=0
-forward speed=5 angle=24.83 until odometer >= 0.785
+forward speed=10 angle=24.83 until odometer >= 0.78
 set odometer=0
-forward speed=10 angle=0 until odometer >= 0.5
+forward speed=20 angle=0 until odometer >= 0.5
 set odometer=0
-forward speed=5 angle=24.83 until odometer >= 0.785
+forward speed=10 angle=24.83 until odometer >= 0.78
 set odometer=0
 set angle=0
 set speed=0

@@ -25,21 +25,21 @@ uint8_t snLeft;
 
 //float speed = 0.0f;
 //float angle = 0.0f;
-int leftCenter = -10;
-int rightCenter = 3;
+int leftCenter = -7;
+int rightCenter = 4;
 SCar car;
 
 
 int AngleToServoLeft(float angle)
 {
-	int servo = (int)(-angle*100.0f/90.0f) + leftCenter;
+	int servo = (int)(-angle*106.0f/90.0f) + leftCenter;
 	return servo;
 }
 
 
 int AngleToServoRight(float angle)
 {
-	int servo = (int)(-angle*100.0f/90.0f) + rightCenter;
+	int servo = (int)(-angle*106.0f/90.0f) + rightCenter;
 	return servo;
 }
 
@@ -67,12 +67,13 @@ void CarComputeTurningAngle(SCar* pCar, float fAngle, float fSpeed)
 
 	float angularLimit = atan(pCar->fCarLength/radiusMax);
 
+	float fBackWidth = 180.0;
 	if(fabs(v) > angularLimit)
 	{
 		float radius = pCar->fCarLength/tanv;
 		curveCenter = v*radius;
-		curveLeft = v*(radius - pCar->fCarWidth/2);
-		curveRight = v*(radius + pCar->fCarWidth/2);
+		curveLeft = v*(radius - fBackWidth/2);
+		curveRight = v*(radius + fBackWidth/2);
 	}
 
 	pCar->fBackWheelLeftSpeed = fSpeed*curveLeft/curveCenter;
@@ -93,8 +94,8 @@ void CarPrint(const SCar* pCar)
 
 bool RobocupInit( void )
 {
-	car.fCarLength = 200;
-	car.fCarWidth = 190;
+	car.fCarLength = 208;
+	car.fCarWidth = 143.46;
 
 	char s[256];
 

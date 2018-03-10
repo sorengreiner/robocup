@@ -181,16 +181,6 @@ bool Follow(SState* s, int noun0, float value0, int noun1, float value1)
 	if(s->index == 0)
 	{
 		printf("Follow\n");
-		if(noun0 < NUM_VARS)
-		{
-			SetVar(noun0, value0);
-		}
-
-		if(noun1 < NUM_VARS)
-		{
-			SetVar(noun1, value1);
-		}
-		s->index++;
 	}
 
 	return false;
@@ -202,21 +192,9 @@ bool Forward(SState* s, int noun0, float value0, int noun1, float value1)
 	if(s->index == 0)
 	{
 		printf("Forward\n");
-		if(noun0 < NUM_VARS)
-		{
-			SetVar(noun0, value0);
-		}
-
-		if(noun1 < NUM_VARS)
-		{
-			SetVar(noun1, value1);
-		}
-
 		float fSpeed = GetVar(V_SPEED);
 		float fAngle = GetVar(V_ANGLE);
 		UpdateCar(fSpeed, fAngle);
-
-		s->index++;
 	}
 
 	return false;
@@ -228,24 +206,78 @@ bool Backward(SState* s, int noun0, float value0, int noun1, float value1)
 	if(s->index == 0)
 	{
 		printf("Backward\n");
-		if(noun0 < NUM_VARS)
-		{
-			SetVar(noun0, value0);
-		}
-
-		if(noun1 < NUM_VARS)
-		{
-			SetVar(noun1, value1);
-		}
-
 		float fSpeed = GetVar(V_SPEED);
 		float fAngle = GetVar(V_ANGLE);
 		UpdateCar(-fSpeed, fAngle);
-
-		s->index++;
 	}
 
 	return false;
+}
+
+#define BACKWHEEL_DIAMETER_MM ( 81.6 )
+#define TACHO_RESOLUTION ( 360 )
+
+int MeterToTacho(float meter)
+{
+	int tacho = (int)(1000*TACHO_RESOLUTION*meter/(M_PI*BACKWHEEL_DIAMETER_MM));
+	return tacho;
+}
+
+float TachoToMeter(int tacho)
+{
+	float meter = tacho*M_PI*(BACKWHEEL_DIAMETER_MM/1000)/TACHO_RESOLUTION;
+	return meter;
+}
+
+void UpdateVars(float delta)
+{
+	// Update odometer
+	int tachoLeft;
+	int tachoRight;
+	get_tacho_position( MOTOR_LEFT, &tachoLeft );
+	get_tacho_position( MOTOR_RIGHT, &tachoRight );
+	float distanceLeft = TachoToMeter(tachoLeft);
+	float distanceRight = TachoToMeter(tachoRight);
+	float distance = (distanceLeft + distanceRight)/2;
+	SetVar(V_ODOMETER, distance);
+
+}
+
+void AssignVar(int noun, float value)
+{
+	switch(noun)
+	{
+	case V_NIL:
+		break;
+	case V_SPEED:
+		SetVar(noun, value);
+		break;
+	case V_ODOMETER:
+		{
+			SetVar(noun, value);
+			int tacho = MeterToTacho(value);
+			set_tacho_position( MOTOR_LEFT, tacho );
+			set_tacho_position( MOTOR_RIGHT, tacho );
+		}
+		break;
+	case V_ANGLE:
+		SetVar(noun, value);
+		break;
+	case V_TIME:
+		SetVar(noun, value);
+		break;
+	case V_HEADING:
+		SetVar(noun, value);
+		break;
+	case V_XPOS:
+		SetVar(noun, value);
+		break;
+	case V_YPOS:
+		SetVar(noun, value);
+		break;
+	default:
+		break;
+	}
 }
 
 

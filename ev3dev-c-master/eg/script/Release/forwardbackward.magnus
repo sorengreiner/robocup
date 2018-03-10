@@ -1,4 +1,3 @@
 set odometer=0
-forward speed=50 time=0 until time >= 0.5
-backward speed=20 time=0 until time > 0.5
+forward speed=50 angle=0 until odometer >= 0.5
 

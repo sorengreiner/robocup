@@ -184,4 +184,8 @@ void PrintProgram(SProgram* pProgram);
 void DeleteProgram(SProgram* pProgram);
 
 
+void UpdateVars(float delta);
+void AssignVar(int noun, float value);
+
 #endif
+

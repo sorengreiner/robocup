@@ -93,7 +93,6 @@ bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1) { 
 bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("TurnLeft "); return true; }
 bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("TurnRight "); return true; }
 
-
 typedef struct 
 {
 	const char* name;
@@ -269,7 +268,10 @@ SVarItem g_Vars[NUM_VARS] =
 
 void SetVar(EVar eVar, float value)
 {
-	g_Vars[eVar].value = value;
+	if(eVar < NUM_VARS)
+	{
+		g_Vars[eVar].value = value;
+	}
 }
 
 float GetVar(EVar eVar)
@@ -921,13 +923,23 @@ void RunProgram(SProgram* pProgram)
 	uint64_t t0 = TimeMilliseconds();
     while(pSequence)
     {
-//		printf("TIME: %f\n", g_Vars[V_TIME].value);
-//		SequencePrint(pSequence);
+		uint64_t t1 = t0;
+		t0 = TimeMilliseconds();
+		float delta = (t0 - t1);
+
         bool bProceed = true;
         if(pSequence->pAction)
         {
+			if(s.index == 0)
+			{
+				AssignVar(pSequence->noun0, pSequence->value0);
+				AssignVar(pSequence->noun1, pSequence->value1);
+			}
+
+			UpdateVars(delta/1000.0);
+
             pSequence->pAction(&s, pSequence->noun0, pSequence->value0, pSequence->noun1, pSequence->value1);
-            
+
             if((pSequence->pConditionA != 0) && (pSequence->pConditionB != 0) && (pSequence->eBooleanOperator != NUM_BOOLEANOPERATOR))
             {
 				switch(pSequence->eBooleanOperator)
@@ -952,42 +964,13 @@ void RunProgram(SProgram* pProgram)
 			}
 		}
 
+		s.index++;
+
 		if(bProceed)
 		{
         	pSequence = pSequence->pNext;
 			s.index = 0;
 		}
-		uint64_t t1 = t0;
-		t0 = TimeMilliseconds();
-		float delta = (t0 - t1)/1000.0;
-
-		float angle = g_Vars[V_ANGLE].value;
-		float time = g_Vars[V_TIME].value;
-		float speed = g_Vars[V_SPEED].value;
-		float heading = g_Vars[V_HEADING].value;
-		float odometer = g_Vars[V_ODOMETER].value;
-		float x = g_Vars[V_XPOS].value;
-		float y = g_Vars[V_YPOS].value;
-
-		// Update time variable
-		time += delta;
-
-		// Update heading and pos as approximated predicted values
-		heading += delta*angle;
-		heading = fmodf(heading, 360.0);
-		odometer += delta*speed;
-		x += delta*speed*cosf(3.14159*heading/180.0);
-		y += delta*speed*sinf(3.14159*heading/180.0);
-
-		g_Vars[V_ANGLE].value = angle;
-		g_Vars[V_TIME].value = time;
-		g_Vars[V_SPEED].value = speed;
-		g_Vars[V_HEADING].value = heading;
-		g_Vars[V_ODOMETER].value = odometer;
-		g_Vars[V_XPOS].value = x;
-		g_Vars[V_YPOS].value = y;
-
-		printf("time=%f heading=%f odometer=%f x=%f y=%f speed=%f angle=%f\n", time, heading, odometer, x, y, speed, angle);
 
 		sleep_ms(10);
     }

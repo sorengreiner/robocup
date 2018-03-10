@@ -262,8 +262,8 @@ void AssignVar(int noun, float value)
 		{
 			SetVar(noun, value);
 			int tacho = MeterToTacho(value);
-			set_tacho_position( MOTOR_LEFT, tacho );
-			set_tacho_position( MOTOR_RIGHT, tacho );
+			tacho_set_position( MOTOR_LEFT, tacho );
+			tacho_set_position( MOTOR_RIGHT, tacho );
 		}
 		break;
 	case V_ANGLE:

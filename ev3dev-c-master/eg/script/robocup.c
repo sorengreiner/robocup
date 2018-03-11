@@ -199,7 +199,7 @@ void UpdateLineSensor(void)
 	if(val > 30)
 	{
 		lineSensor.nLines = 1;
-		lineSensor.fPos[0] = val - 30;;
+		lineSensor.fPos[0] = val - 30;
 		lineSensor.fPos[1] = 0;
 	}
 	else

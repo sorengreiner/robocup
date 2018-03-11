@@ -7,6 +7,8 @@ html/
 *.o
 *.pyc
 *.sublime-workspace
+*.so
+*.a
 
 .tags
 sftp-config.json

@@ -22,9 +22,8 @@ POOL_T ir;             /* IR sensor port (will be detected) */
 POOL_T rc;
 uint8_t snRight;
 uint8_t snLeft;
+uint8_t snColor;
 
-//float speed = 0.0f;
-//float angle = 0.0f;
 int leftCenter = -7;
 int rightCenter = 4;
 SCar car;
@@ -153,7 +152,15 @@ bool RobocupInit( void )
 	}
 	printf("%s Detecting servo battery\n", bDetectServoBatteryLevel ? "[  OK  ]" : "[FAILED]");
 
-	return bDetectMotors && bDetectServoRight && bDetectServoLeft && bDetectServoBatteryLevel;
+	bool bDetectLineSensor = false;
+	if ( ev3_search_sensor( LEGO_EV3_COLOR, &snColor, 0 )) 
+	{
+		bDetectLineSensor = true;
+		set_sensor_mode( snColor, "COL-REFLECT" ); 
+	}
+	printf("%s Detecting line sensor\n", bDetectLineSensor ? "[  OK  ]" : "[FAILED]");
+
+	return bDetectMotors && bDetectServoRight && bDetectServoLeft && bDetectServoBatteryLevel && bDetectLineSensor;
 }
 
 void UpdateCar(float speed, float angle)
@@ -172,6 +179,37 @@ void UpdateCar(float speed, float angle)
 	set_servo_position_sp(snRight, servoRightSp);
 }
 
+
+typedef struct
+{
+	int nLines;
+	float fPos[2];
+} SLineSensorData;
+
+SLineSensorData lineSensor = {0, {0.0, 0.0} };
+
+void UpdateLineSensor(void)
+{
+	int val = 0;
+	if ( !get_sensor_value( 0, snColor, &val )) 
+	{
+		val = 0;
+	}
+
+	if(val > 30)
+	{
+		lineSensor.nLines = 1;
+		lineSensor.fPos[0] = val - 30;;
+		lineSensor.fPos[1] = 0;
+	}
+	else
+	{
+		lineSensor.nLines = 0;
+		lineSensor.fPos[0] = 0;
+		lineSensor.fPos[1] = 0;
+	}
+}
+
 //-----------------------------------------------------------------------------
 // Script handler functions
 //-----------------------------------------------------------------------------
@@ -182,6 +220,16 @@ bool Follow(SState* s, int noun0, float value0, int noun1, float value1)
 	if(s->index == 0)
 	{
 		printf("Follow\n");
+	}
+	UpdateLineSensor();
+
+	float fSpeed = GetVar(V_SPEED);
+	float fAngle = 0.0f;
+
+	if(lineSensor.nLines > 0)
+	{
+		fAngle = -(lineSensor.fPos[0] - 15);
+		UpdateCar(fSpeed, fAngle);
 	}
 
 	return false;

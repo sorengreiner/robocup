@@ -972,7 +972,7 @@ void RunProgram(SProgram* pProgram)
 			s.index = 0;
 		}
 
-		sleep_ms(50);
+		sleep_ms(25);
     }
 }
 

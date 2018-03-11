@@ -1,0 +1,3 @@
+#!/bin/bash
+./roborun test.magnus
+

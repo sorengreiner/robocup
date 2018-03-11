@@ -1,0 +1,10 @@
+set odometer=0
+forward speed=100 until odometer > 3
+forward speed=10 until odometer > 3.5
+set angle=-24
+set odometer=0
+backward until odometer < -0,75
+set angle=24
+set odometer=0
+forward until odometer > 0.75
+forward angle=0 speed=50 until odometer > 3

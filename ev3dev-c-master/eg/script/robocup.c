@@ -199,7 +199,7 @@ SLineSensorData lineSensor = {0, {0.0, 0.0} };
 void UpdateLineSensor(void)
 {
 	uint8_t values[8];
-	int n = get_sensor_bin_data( snColor, values, 8);
+	int n = get_sensor_bin_data( snLine, values, 8);
 	printf("val[%d] %d %d %d %d %d %d %d %d\n", n, values[0],values[1],values[2],values[3],values[4],values[5],values[6],values[7]);
 
 	lineSensor.nLines = 0;

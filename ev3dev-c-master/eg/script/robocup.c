@@ -23,6 +23,7 @@ POOL_T rc;
 uint8_t snRight;
 uint8_t snLeft;
 uint8_t snColor;
+uint8_t snLine;
 
 int leftCenter = -7;
 int rightCenter = 4;
@@ -152,11 +153,18 @@ bool RobocupInit( void )
 	}
 	printf("%s Detecting servo battery\n", bDetectServoBatteryLevel ? "[  OK  ]" : "[FAILED]");
 
-	bool bDetectLineSensor = false;
+	bool bDetectColorSensor = false;
 	if ( ev3_search_sensor( LEGO_EV3_COLOR, &snColor, 0 )) 
 	{
-		bDetectLineSensor = true;
+		bDetectColorSensor = true;
 		set_sensor_mode( snColor, "COL-REFLECT" ); 
+	}
+	printf("%s Detecting color sensor\n", bDetectColorSensor ? "[  OK  ]" : "[FAILED]");
+
+	bool bDetectLineSensor = false;
+	if ( ev3_search_sensor( MS_LIGHT_ARRAY, &snLine, 0 )) 
+	{
+		bDetectLineSensor = true;
 	}
 	printf("%s Detecting line sensor\n", bDetectLineSensor ? "[  OK  ]" : "[FAILED]");
 
@@ -190,24 +198,13 @@ SLineSensorData lineSensor = {0, {0.0, 0.0} };
 
 void UpdateLineSensor(void)
 {
-	int val = 0;
-	if ( !get_sensor_value( 0, snColor, &val )) 
-	{
-		val = 0;
-	}
+	uint8_t values[8];
+	int n = get_sensor_bin_data( snColor, values, 8);
+	printf("val[%d] %d %d %d %d %d %d %d %d\n", n, values[0],values[1],values[2],values[3],values[4],values[5],values[6],values[7]);
 
-	if(val > 30)
-	{
-		lineSensor.nLines = 1;
-		lineSensor.fPos[0] = val - 30;
-		lineSensor.fPos[1] = 0;
-	}
-	else
-	{
-		lineSensor.nLines = 0;
-		lineSensor.fPos[0] = 0;
-		lineSensor.fPos[1] = 0;
-	}
+	lineSensor.nLines = 0;
+	lineSensor.fPos[0] = 0;
+	lineSensor.fPos[1] = 0;
 }
 
 //-----------------------------------------------------------------------------

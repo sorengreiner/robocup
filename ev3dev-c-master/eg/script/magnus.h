@@ -91,6 +91,7 @@ typedef enum
 typedef struct
 {
 	int index;
+	uint8_t stack[256];
 } SState;
 
 typedef struct _SSequence

@@ -85,11 +85,7 @@ bool BranchLeft(SState* s, int noun0, float value0, int noun1, float value1) { p
 bool BranchRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("BranchRight "); return true; }
 bool JunctionLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("JunctionLeft "); return true; }
 bool JunctionRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("JunctionRight "); return true; }
-bool Line(SState* s, int noun0, float value0, int noun1, float value1) { printf("Line "); return true; }
 
-
-bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("FollowLeft "); return true; }
-bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("FollowRight "); return true; }
 bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("TurnLeft "); return true; }
 bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("TurnRight "); return true; }
 

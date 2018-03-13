@@ -199,13 +199,20 @@ void UpdateLineSensor(void)
 	if(n == 8)
 	{
 		LineAnalyze(&lineSensor);
-		printf("le: %d %f re: %d %f\n", lineSensor.nLeftEdges, lineSensor.leftEdge, lineSensor.nRightEdges, lineSensor.rightEdge);
+//		printf("le: %d %f re: %d %f\n", lineSensor.nLeftEdges, lineSensor.leftEdge, lineSensor.nRightEdges, lineSensor.rightEdge);
 	}
 }
 
 //-----------------------------------------------------------------------------
 // Script handler functions
 //-----------------------------------------------------------------------------
+
+
+bool Line(SState* s, int noun0, float value0, int noun1, float value1)
+{
+	return (lineSensor.nLeftEdges > 0) || (lineSensor.nRightEdges > 0);
+}
+
 
 #define LINESENSOR_WIDTH_MM (46.0)
 
@@ -214,27 +221,77 @@ float LinePosToPhysical(float pos)
 	return -(LINESENSOR_WIDTH_MM*pos/POINTS - LINESENSOR_WIDTH_MM/2);
 }
 
-float g_fLastAngle = 0;
+
+typedef struct
+{
+	float fLastLinePos;
+} SFollowState;
+
 
 bool Follow(SState* s, int noun0, float value0, int noun1, float value1) 
 { 
+	SFollowState* p = (SFollowState*)s->stack;
 	if(s->index == 0)
 	{
 		printf("Follow\n");
-		g_fLastAngle = 0;
+		p->fLastLinePos = 0.0f;
 	}
-	UpdateLineSensor();
 
 	float fSpeed = GetVar(V_SPEED);
-	float fAngle = 0.0f;
+
+	if(lineSensor.n > 0)
+	{
+		p->fLastLinePos = LinePosToPhysical(lineSensor.p0);
+	}
+
+	float fAngle = p->fLastLinePos;
+	UpdateCar(fSpeed, fAngle);
+
+	return false;
+}
+
+
+bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
+	SFollowState* p = (SFollowState*)s->stack;
+	if(s->index == 0)
+	{
+		printf("FollowLeft\n");
+		p->fLastLinePos = 0.0f;
+	}
+
+	float fSpeed = GetVar(V_SPEED);
 
 	if(lineSensor.nLeftEdges > 0)
 	{
-		float linePos = LinePosToPhysical(lineSensor.leftEdge);
-		fAngle = linePos;
-		g_fLastAngle = fAngle;
+		p->fLastLinePos = LinePosToPhysical(lineSensor.leftEdge);
 	}
-	UpdateCar(fSpeed, g_fLastAngle);
+
+	float fAngle = p->fLastLinePos;
+	UpdateCar(fSpeed, fAngle);
+
+	return false;
+}
+
+
+bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
+	SFollowState* p = (SFollowState*)s->stack;
+	if(s->index == 0)
+	{
+		printf("FollowRight\n");
+		p->fLastLinePos = 0.0f;
+	}
+
+	float fSpeed = GetVar(V_SPEED);
+
+	if(lineSensor.nRightEdges > 0)
+	{
+		p->fLastLinePos = LinePosToPhysical(lineSensor.rightEdge);
+	}
+
+	float fAngle = p->fLastLinePos;
+	UpdateCar(fSpeed, fAngle);
 
 	return false;
 }
@@ -300,6 +357,7 @@ void UpdateVars(float delta)
 
 	SetVar(V_TIME, time);
 
+	UpdateLineSensor();
 }
 
 void AssignVar(int noun, float value)

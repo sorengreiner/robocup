@@ -138,6 +138,7 @@ bool RobocupInit( void )
 	bool bDetectServoLeft = false;
 	if ( ev3_search_servo_plugged_in( INPUT_1, SERVO_2, &snLeft, 0 )) 
 	{
+		bDetectServoLeft = true;
 		set_servo_position_sp( snLeft, 0 );
 		set_servo_command_inx(snLeft, SERVO_RUN);
 	}

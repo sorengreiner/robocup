@@ -1,4 +1,7 @@
 set odometer=0
+wait until line
 set time=0
-follow speed=0 until time > 30
+follow speed=0 until time > 10
+followright until time > 20
+followleft until time > 30
 

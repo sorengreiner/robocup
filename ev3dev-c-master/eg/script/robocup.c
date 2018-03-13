@@ -1,5 +1,6 @@
 #include "robocup.h"
 #include "magnus.h"
+#include "line.h"
 #include "brick.h"
 #include "ev3_servo.h"
 
@@ -188,28 +189,30 @@ void UpdateCar(float speed, float angle)
 }
 
 
-typedef struct
-{
-	int nLines;
-	float fPos[2];
-} SLineSensorData;
+SLine lineSensor;
 
-SLineSensorData lineSensor = {0, {0.0, 0.0} };
 
 void UpdateLineSensor(void)
 {
 	uint8_t values[8];
-	int n = get_sensor_bin_data( snLine, values, 8);
-	printf("val[%d] %d %d %d %d %d %d %d %d\n", n, values[0],values[1],values[2],values[3],values[4],values[5],values[6],values[7]);
-
-	lineSensor.nLines = 0;
-	lineSensor.fPos[0] = 0;
-	lineSensor.fPos[1] = 0;
+	int n = get_sensor_bin_data( snLine, lineSensor.data, 8);
+	if(n == 8)
+	{
+		LineAnalyze(&lineSensor);
+		printf("le: %d %f re: %d %f", lineSensor.nLeftEdges, lineSensor.leftEdge, lineSensor.nRightEdges, lineSensor.rightEdge);
+	}
 }
 
 //-----------------------------------------------------------------------------
 // Script handler functions
 //-----------------------------------------------------------------------------
+
+#define LINESENSOR_WIDTH_MM (46.0)
+
+float LinePosToPhysical(float pos)
+{
+	return -(pos - LINESENSOR_WIDTH_MM/2);
+}
 
 
 bool Follow(SState* s, int noun0, float value0, int noun1, float value1) 
@@ -223,11 +226,12 @@ bool Follow(SState* s, int noun0, float value0, int noun1, float value1)
 	float fSpeed = GetVar(V_SPEED);
 	float fAngle = 0.0f;
 
-	if(lineSensor.nLines > 0)
+	if(lineSensor.nLeftEdges > 0)
 	{
-		fAngle = -(lineSensor.fPos[0] - 15);
-		UpdateCar(fSpeed, fAngle);
+		float linePos = LinePosToPhysical(lineSensor.leftEdge);
+		fAngle = linePos;
 	}
+	UpdateCar(fSpeed, fAngle);
 
 	return false;
 }
@@ -343,6 +347,8 @@ int main(int argc, char* argv[])
 	{
 		return 1;
 	}
+
+	LineInit(&lineSensor);
 
 	RobocupInit();
 

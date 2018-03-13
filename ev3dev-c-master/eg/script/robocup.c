@@ -199,7 +199,7 @@ void UpdateLineSensor(void)
 	if(n == 8)
 	{
 		LineAnalyze(&lineSensor);
-		printf("le: %d %f re: %d %f", lineSensor.nLeftEdges, lineSensor.leftEdge, lineSensor.nRightEdges, lineSensor.rightEdge);
+		printf("le: %d %f re: %d %f\n", lineSensor.nLeftEdges, lineSensor.leftEdge, lineSensor.nRightEdges, lineSensor.rightEdge);
 	}
 }
 
@@ -211,15 +211,17 @@ void UpdateLineSensor(void)
 
 float LinePosToPhysical(float pos)
 {
-	return -(pos - LINESENSOR_WIDTH_MM/2);
+	return -(LINESENSOR_WIDTH_MM*pos/POINTS - LINESENSOR_WIDTH_MM/2);
 }
 
+float g_fLastAngle = 0;
 
 bool Follow(SState* s, int noun0, float value0, int noun1, float value1) 
 { 
 	if(s->index == 0)
 	{
 		printf("Follow\n");
+		g_fLastAngle = 0;
 	}
 	UpdateLineSensor();
 
@@ -230,8 +232,9 @@ bool Follow(SState* s, int noun0, float value0, int noun1, float value1)
 	{
 		float linePos = LinePosToPhysical(lineSensor.leftEdge);
 		fAngle = linePos;
+		g_fLastAngle = fAngle;
 	}
-	UpdateCar(fSpeed, fAngle);
+	UpdateCar(fSpeed, g_fLastAngle);
 
 	return false;
 }

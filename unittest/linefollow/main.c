@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include "line.h"
 
 uint8_t g_data[] =
 {
@@ -236,180 +237,6 @@ uint8_t g_data[] =
 46,40,29,20,4,21,37,43
 };
 
-#define POINTS (8)
-
-typedef struct
-{
-    uint8_t data[POINTS];
-    uint8_t n;
-    float p0;
-    float w0;
-    float p1;
-    float w1;
-	uint8_t nLeftEdges;
-	float leftEdge;
-
-	uint8_t nRightEdges;
-	float rightEdge;
-} SLine;
-
-
-void PrintLine(SLine* pLine)
-{
-    printf("in{");
-    for(int i = 0; i < POINTS; i++)
-    {
-        printf("%3d ", pLine->data[i]);
-    }
-    printf("}");
-
-    printf("left[%d]{%f} ", pLine->nLeftEdges, pLine->leftEdge);
-    printf("right[%d]{%f} ", pLine->nRightEdges, pLine->rightEdge);
-}
-
-// Compute w3 point weighted average around pos
-float WeightedAverage(int8_t* derivative, int i, int n)
-{
-	float a = i > 0 ? derivative[i - 1] : 0;
-	float b = derivative[i];
-	float c = i < n - 1 ? derivative[i + 1] : 0;
-
-	float sum = a+b+c;
-	float w = (a*(i-1) + b*i + c*(i+1))/sum;
-	return w;
-}
-
-
-void SearchLeftEdges(SLine* pLine)
-{
-	// Search for left edges
-	int8_t derivative[POINTS + 1];
-	for(int i = 0; i < POINTS + 1; i++)
-	{
-		int8_t diff;
-		if(i > 0)
-		{
-			diff = pLine->data[i] - pLine->data[i - 1];
-		}
-		else
-		{
-			diff = pLine->data[i];
-		}
-
-		derivative[i] = 0;
-		if(diff > 0)
-		{
-			derivative[i] = diff;
-		}
-	}
-
-//	printf(" dp:{"); for(int i = 0; i < POINTS + 1; i++) { printf("%3d ", (int)derivative[i]); } printf("} ");
-
-	// Search for positive peaks
-	float max = 0;
-	int maxpos = 0;
-	for(int i = 0; i < 9; i++)
-	{
-		if(derivative[i] > max)
-		{
-			max = derivative[i];
-			maxpos = i;
-		}
-	}
-
-	if(max > 10)
-	{
-		pLine->nLeftEdges = 1;
-		pLine->leftEdge = WeightedAverage(derivative, maxpos, POINTS + 1);
-	}
-}
-
-
-void SearchRightEdges(SLine* pLine)
-{
-	// Search for right edges
-	int8_t derivative[POINTS + 1];
-	for(int i = 0; i < POINTS + 1; i++)
-	{
-		int8_t diff;
-		if(i > 0)
-		{
-			diff = pLine->data[i] - pLine->data[i - 1];
-		}
-		else
-		{
-			diff = pLine->data[i];
-		}
-
-		derivative[i] = 0;
-		if(diff < 0)
-		{
-			derivative[i] = -diff;
-		}
-	}
-
-//	printf(" dp:{"); for(int i = 0; i < POINTS + 1; i++) { printf("%3d ", (int)derivative[i]); } printf("} ");
-
-	// Search for positive peaks
-	float max = 0;
-	int maxpos = 0;
-	for(int i = 0; i < 9; i++)
-	{
-		if(derivative[i] > max)
-		{
-			max = derivative[i];
-			maxpos = i;
-		}
-	}
-
-	if(max > 10)
-	{
-		pLine->nRightEdges = 1;
-		pLine->rightEdge = WeightedAverage(derivative, maxpos, POINTS + 1);
-	}
-}
-
-
-
-void AnalyzeLine(SLine* pLine)
-{
-    pLine->n = 0;
-    pLine->p0 = 0.0f;
-    pLine->w0 = 0.0f;
-    pLine->p1 = 0.0f;
-    pLine->w1 = 0.0f;
-	pLine->nLeftEdges = 0;
-	pLine->leftEdge = 0;
-
-	pLine->nRightEdges = 0;
-	pLine->rightEdge = 0;
-
-	// Compute weighted average
-    float threshold = 10.0;
-    int count = 0;
-    float p = 0.0;
-    float sum = 0.0;
-    for(int i = 0; i < POINTS; i++)
-    {
-        if(pLine->data[i] > threshold)
-        {
-            count = 1;
-            sum += pLine->data[i];
-            p += pLine->data[i]*i;
-        }
-    }
-    
-    p = p/sum;
-    if(count > 0)
-    {
-        pLine->p0 = p;
-    }
-    pLine->n = count;
-
-	SearchLeftEdges(pLine);
-	SearchRightEdges(pLine);
-}
-
 
 int main(int argc, char* argv[])
 {
@@ -419,8 +246,8 @@ int main(int argc, char* argv[])
         SLine line;
         memcpy(line.data, g_data + 8*i, 8);
         
-        AnalyzeLine(&line);
-        PrintLine(&line);
+        LineAnalyze(&line);
+        LinePrint(&line);
 		printf("\n");
     }
     

@@ -325,6 +325,91 @@ bool Backward(SState* s, int noun0, float value0, int noun1, float value1)
 	return false;
 }
 
+
+typedef struct
+{
+	float fOdometer;	// Odometer value at entry
+	float fDistance;	// Distance to complete when turning angle degrees
+} STurnState;
+
+
+bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
+{ 
+	STurnState* p = (STurnState*)s->stack;
+
+	if(s->index == 0)
+	{
+		printf("TurnLeft");
+		// Ignore V_ANGLE while we are turning, but use V_SPEED
+		p->fOdometer = GetVar(V_ODOMETER);
+		float fSpeed = GetVar(V_SPEED);
+		float fAngle = GetVar(V_ANGLE);
+		float fRadius = GetVar(V_RADIUS); // Turn radius in meter
+		// Limit turn radius
+		if(fRadius < 0.2)
+		{
+			fRadius = 0.2;
+		}
+
+		if(fRadius > 100.0)
+		{
+			fRadius = 100.0;
+		}
+
+		p->fDistance = fRadius*fAngle*M_PI/180.0;
+
+		float fWheelAngle = 180.0*atan2(car.fCarLength, fRadius)/M_PI;
+		UpdateCar(fSpeed, fWheelAngle);
+	}
+
+	float fOdometer = GetVar(V_ODOMETER);
+	if(fOdometer > p->fDistance)
+	{
+		return true;
+	}
+
+	return false; 
+}
+
+bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
+{
+	STurnState* p = (STurnState*)s->stack;
+
+	if(s->index == 0)
+	{
+		printf("TurnRight");
+		// Ignore V_ANGLE while we are turning, but use V_SPEED
+		p->fOdometer = GetVar(V_ODOMETER);
+		float fSpeed = GetVar(V_SPEED);
+		float fAngle = GetVar(V_ANGLE);
+		float fRadius = GetVar(V_RADIUS); // Turn radius in meter
+		// Limit turn radius
+		if(fRadius < 0.2)
+		{
+			fRadius = 0.2;
+		}
+
+		if(fRadius > 100.0)
+		{
+			fRadius = 100.0;
+		}
+
+		p->fDistance = fRadius*fAngle*M_PI/180.0;
+
+		float fWheelAngle = 180.0*atan2(car.fCarLength, fRadius)/M_PI;
+		UpdateCar(fSpeed, -fWheelAngle);
+	}
+
+	float fOdometer = GetVar(V_ODOMETER);
+	if(fOdometer > p->fDistance)
+	{
+		return true;
+	}
+
+	return false; 
+}
+
+
 #define BACKWHEEL_DIAMETER_MM ( 81.6 )
 #define TACHO_RESOLUTION ( 360 )
 

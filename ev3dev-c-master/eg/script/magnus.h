@@ -19,6 +19,7 @@ typedef enum
 	V_SPEED,
 	V_ODOMETER,
 	V_ANGLE,
+	V_RADIUS,
 	V_TIME,
 	V_HEADING,	// heading in degrees relative to north
 	V_XPOS,		// X position as eastward value relative to starting point

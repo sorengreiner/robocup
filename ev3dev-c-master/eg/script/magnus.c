@@ -86,8 +86,6 @@ bool BranchRight(SState* s, int noun0, float value0, int noun1, float value1) { 
 bool JunctionLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("JunctionLeft "); return true; }
 bool JunctionRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("JunctionRight "); return true; }
 
-bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("TurnLeft "); return true; }
-bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("TurnRight "); return true; }
 
 typedef struct 
 {
@@ -256,6 +254,7 @@ SVarItem g_Vars[NUM_VARS] =
 	{"SPEED",		0.0 },
 	{"ODOMETER",	0.0 },
 	{"ANGLE",		0.0 },
+	{"RADIUS",		0.0 },
 	{"TIME",		0.0 },
 	{"HEADING",		0.0 },
 	{"XPOS",		0.0 },
@@ -934,7 +933,12 @@ void RunProgram(SProgram* pProgram)
 
 			UpdateVars(delta/1000.0);
 
-            pSequence->pAction(&s, pSequence->noun0, pSequence->value0, pSequence->noun1, pSequence->value1);
+            bool bImmidiateReturn = pSequence->pAction(&s, pSequence->noun0, pSequence->value0, pSequence->noun1, pSequence->value1);
+
+			if(bImmidiateReturn)
+			{
+				bProceed = true;
+			}
 
             if((pSequence->pConditionA != 0) && (pSequence->pConditionB != 0) && (pSequence->eBooleanOperator != NUM_BOOLEANOPERATOR))
             {

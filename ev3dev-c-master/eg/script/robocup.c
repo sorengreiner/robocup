@@ -26,21 +26,21 @@ uint8_t snLeft;
 uint8_t snColor;
 uint8_t snLine;
 
-int leftCenter = -7;
-int rightCenter = 4;
+int leftCenter = -4;
+int rightCenter = 0;
 SCar car;
 
 
 int AngleToServoLeft(float angle)
 {
-	int servo = (int)(-angle*106.0f/90.0f) + leftCenter;
+	int servo = (int)(-angle*118.0f/90.0f) + leftCenter;
 	return servo;
 }
 
 
 int AngleToServoRight(float angle)
 {
-	int servo = (int)(-angle*106.0f/90.0f) + rightCenter;
+	int servo = (int)(-angle*118.0f/90.0f) + rightCenter;
 	return servo;
 }
 
@@ -366,7 +366,7 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 	}
 
 	float fOdometer = GetVar(V_ODOMETER);
-	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
+//	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
 	if(fOdometer - p->fOdometer > p->fDistance)
 	{
 		return true;
@@ -405,7 +405,7 @@ bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 	}
 
 	float fOdometer = GetVar(V_ODOMETER);
-	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
+//	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
 	if(fOdometer - p->fOdometer > p->fDistance)
 	{
 		return true;

@@ -1,7 +1,15 @@
 set odometer=0
-wait until line
 set time=0
-follow speed=0 until time > 10
-followright until time > 20
-followleft until time > 30
-
+wait until time > 2
+set radius=0.5
+forward speed=10 angle=0 until odometer > 1
+set odometer=0
+turnleft angle=90
+set odometer=0
+set angle=0
+forward speed=10 until odometer > 1
+set radius=1
+set odometer=0
+turnright angle=90
+set angle=0
+forward speed=0

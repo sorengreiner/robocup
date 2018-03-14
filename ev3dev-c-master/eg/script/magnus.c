@@ -922,27 +922,28 @@ void RunProgram(SProgram* pProgram)
 		t0 = TimeMilliseconds();
 		float delta = (t0 - t1);
 
-        bool bProceed = true;
+        bool bProceed = false;
         if(pSequence->pAction)
         {
-			if(s.index == 0)
-			{
-				AssignVar(pSequence->noun0, pSequence->value0);
-				AssignVar(pSequence->noun1, pSequence->value1);
-			}
+            if(s.index == 0)
+            {
+                AssignVar(pSequence->noun0, pSequence->value0);
+                AssignVar(pSequence->noun1, pSequence->value1);
+            }
 
-			UpdateVars(delta/1000.0);
+            UpdateVars(delta/1000.0);
 
             bool bImmidiateReturn = pSequence->pAction(&s, pSequence->noun0, pSequence->value0, pSequence->noun1, pSequence->value1);
 
-			if(bImmidiateReturn)
-			{
-				bProceed = true;
-			}
-
+            if(bImmidiateReturn)
+            {
+		bProceed = true;
+            }
+            else
+            {
             if((pSequence->pConditionA != 0) && (pSequence->pConditionB != 0) && (pSequence->eBooleanOperator != NUM_BOOLEANOPERATOR))
             {
-				switch(pSequence->eBooleanOperator)
+                switch(pSequence->eBooleanOperator)
 				{
 				case B_AND:
 					bProceed = pSequence->pConditionA(&s, pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1)
@@ -952,27 +953,28 @@ void RunProgram(SProgram* pProgram)
 				case B_OR:
 					bProceed = pSequence->pConditionA(&s, pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1)
 						|| pSequence->pConditionB(&s, pSequence->right_noun0, pSequence->right_value0, pSequence->right_noun1, pSequence->right_value1);
-					break;
+                    break;
                 }
             }
-			else if(pSequence->pConditionA != 0)
-			{
-				bProceed = pSequence->pConditionA(&s, pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1);
-			}
-			else
-			{
-			}
-		}
+            else if(pSequence->pConditionA != 0)
+            {
+                bProceed = pSequence->pConditionA(&s, pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1);
+            }
+            else
+            {
+            }
+            }
+        }
 
-		s.index++;
+        s.index++;
 
-		if(bProceed)
-		{
-        	pSequence = pSequence->pNext;
-			s.index = 0;
-		}
+        if(bProceed)
+        {
+            pSequence = pSequence->pNext;
+            s.index = 0;
+        }
 
-		sleep_ms(25);
+        sleep_ms(25);
     }
 }
 

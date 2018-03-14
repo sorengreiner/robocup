@@ -175,6 +175,7 @@ bool RobocupInit( void )
 
 void UpdateCar(float speed, float angle)
 {
+	printf("UpdateCar %f %f", speed, angle);
 	CarComputeTurningAngle(&car, angle, speed);
 
 	int motorSetpointLeft = -(int)(max_speed * car.fBackWheelLeftSpeed / 100); 
@@ -185,6 +186,7 @@ void UpdateCar(float speed, float angle)
 
 	int servoLeftSp = AngleToServoLeft(car.fFrontWheelLeftAngle);
 	int servoRightSp = AngleToServoRight(car.fFrontWheelRightAngle); 
+	printf("servo: %d %d\n", servoLeftSp, servoRightSp);
 	set_servo_position_sp(snLeft, servoLeftSp);
 	set_servo_position_sp(snRight, servoRightSp);
 }
@@ -339,7 +341,7 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 
 	if(s->index == 0)
 	{
-		printf("TurnLeft");
+		printf("TurnLeft\n");
 		// Ignore V_ANGLE while we are turning, but use V_SPEED
 		p->fOdometer = GetVar(V_ODOMETER);
 		float fSpeed = GetVar(V_SPEED);
@@ -358,12 +360,14 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 
 		p->fDistance = fRadius*fAngle*M_PI/180.0;
 
-		float fWheelAngle = 180.0*atan2(car.fCarLength, fRadius)/M_PI;
+		float fWheelAngle = 180.0*atan2(car.fCarLength/1000, fRadius)/M_PI;
+		printf("angle=%f wangle=%f radius=%f\n", fAngle, fWheelAngle, fRadius);
 		UpdateCar(fSpeed, fWheelAngle);
 	}
 
 	float fOdometer = GetVar(V_ODOMETER);
-	if(fOdometer > p->fDistance)
+	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
+	if(fOdometer - p->fOdometer > p->fDistance)
 	{
 		return true;
 	}
@@ -377,7 +381,7 @@ bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 
 	if(s->index == 0)
 	{
-		printf("TurnRight");
+		printf("TurnRight\n");
 		// Ignore V_ANGLE while we are turning, but use V_SPEED
 		p->fOdometer = GetVar(V_ODOMETER);
 		float fSpeed = GetVar(V_SPEED);
@@ -396,12 +400,13 @@ bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 
 		p->fDistance = fRadius*fAngle*M_PI/180.0;
 
-		float fWheelAngle = 180.0*atan2(car.fCarLength, fRadius)/M_PI;
+		float fWheelAngle = 180.0*atan2(car.fCarLength/1000, fRadius)/M_PI;
 		UpdateCar(fSpeed, -fWheelAngle);
 	}
 
 	float fOdometer = GetVar(V_ODOMETER);
-	if(fOdometer > p->fDistance)
+	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
+	if(fOdometer - p->fOdometer > p->fDistance)
 	{
 		return true;
 	}

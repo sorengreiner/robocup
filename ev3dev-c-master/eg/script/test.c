@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 	if(argc > 1)
 	{
 		// Load script
-		FILE* file = fopen(argv[1], "r");
+		FILE* file = fopen(argv[1], "rb");
 		fseek(file, 0l, SEEK_END);
 		size_t size = ftell(file);
 		fseek(file, 0l, SEEK_SET);
@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
         {
             // Run program
             PrintProgram(&program);
-            RunProgram(&program);
+//            RunProgram(&program);
             
             DeleteProgram(&program);
         }

@@ -48,6 +48,7 @@ typedef enum
     A_TURNLEFT,
     A_TURNRIGHT,
     A_WAIT,
+	A_STOP,
 	NUM_ACTIONS
 } EAction;
 
@@ -174,6 +175,7 @@ bool Set(SState* s, int noun0, float value0, int noun1, float value1);
 bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1);
 bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1);
 bool Wait(SState* s, int noun0, float value0, int noun1, float value1);
+bool Stop(SState* s, int noun0, float value0, int noun1, float value1);
 
 
 typedef struct

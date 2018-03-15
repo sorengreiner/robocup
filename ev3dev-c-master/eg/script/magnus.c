@@ -134,6 +134,7 @@ SActionItem g_Actions[NUM_ACTIONS] =
 	{"TURNLEFT", 		TurnLeft},
 	{"TURNRIGHT", 		TurnRight},
 	{"WAIT", 			Wait},
+	{"STOP", 			Stop},
 };
 
 
@@ -417,30 +418,45 @@ void SequencePrint(SSequence* pSequence)
 	printf("\n");
 }
 
-
-
-bool ParseLine(char* in, SSequence* pItem)
+typedef enum
 {
+	PARSE_OK = 0,
+	PARSE_ERROR,
+	PARSE_IGNORE
+} EParse;
+
+EParse ParseLine(char* in, SSequence* pItem)
+{
+	printf("------------------------------------------------------------\n");
+	printf("'%s'\n", in);
 	ESyntax eSyntax = S_ACTION;
 	char* p = in;
 	// for each line parse the program
 
+	// Trim first white space before parsing rest of line
+	while((*p == ' '))
+	{
+		p++;
+	}
+
+	if(*p == 0 || *p == '#')
+	{
+		return PARSE_IGNORE;
+	}
+
 	while(*p != 0)
 	{
+		printf("!");
 		char buffer[256];
 		char* ps = p;
+
 		while((*p != ' ') && (*p != 0))
 		{
 			p++;
 		}
 
-		char* pe = p + 1;
-		while(*p == ' ')
-		{
-			p++;
-		}
-
-		int len = pe - ps - 1;
+		char* pe = p;
+		int len = pe - ps;
 		if(len > 0)
 		{
 			memcpy(buffer, ps, len);
@@ -449,7 +465,6 @@ bool ParseLine(char* in, SSequence* pItem)
 	
 			// Search keywords
 			EKeyword eKeyword = MatchKeyword(buffer);
-			EAction eAction = MatchAction(buffer);
 			ECond eCond = MatchCondition(buffer);
 			float value = 0;
 			EOp eOp = MatchOperator(buffer);
@@ -460,10 +475,12 @@ bool ParseLine(char* in, SSequence* pItem)
 			switch(eSyntax)
 			{
 			case S_ACTION:
+			{
+				EAction eAction = MatchAction(buffer);
 				if(eAction != NUM_ACTIONS)
 				{
 					eSyntax = S_KEYVALUE0;
-//					printf("  ACTION=%s\n", g_Actions[eAction].name);
+					printf("  ACTION=%s\n", g_Actions[eAction].name);
 					pItem->eAction = eAction;
 					pItem->pAction = g_Actions[eAction].pFunction;
 				}
@@ -472,8 +489,11 @@ bool ParseLine(char* in, SSequence* pItem)
 					printf("syntax error: expected an action got %s\n", buffer);
 					return false;
 				}
-				break;
+			}
+			break;
+
 			case S_KEYVALUE0:
+				printf("S_KEYVALUE0\n");
 				if(eKeyword == K_UNTIL)
 				{
 //					printf("  UNTIL\n");
@@ -481,7 +501,7 @@ bool ParseLine(char* in, SSequence* pItem)
 				}
 				else if(eKeyValue != NUM_VARS)
 				{
-//					printf("  KV(%s,%f)\n", g_Vars[eKeyValue].name, value);
+					printf("  KV(%s,%f)\n", g_Vars[eKeyValue].name, value);
 					pItem->noun0 = eKeyValue;
 					pItem->value0 = value;
 					eSyntax = S_KEYVALUE1;
@@ -492,16 +512,21 @@ bool ParseLine(char* in, SSequence* pItem)
 				}
 				break;
 			case S_KEYVALUE1:
+				printf("S_KEYVALUE1\n");
 				if(eKeyword == K_UNTIL)
 				{
 					eSyntax = S_CONDITIONA;
 				}
 				else if(eKeyValue != NUM_VARS)
 				{
-//					printf("  KV(%s,%f)\n", g_Vars[eKeyValue].name, value);
+					printf("  KV(%s,%f)\n", g_Vars[eKeyValue].name, value);
 					pItem->noun1 = eKeyValue;
 					pItem->value1 = value;
 					eSyntax = S_UNTIL;
+				}
+				else
+				{
+					eSyntax = S_END;
 				}
 				break;
 			case S_UNTIL:
@@ -694,9 +719,23 @@ bool ParseLine(char* in, SSequence* pItem)
 		{
 			break;
 		}
+
+		while(*p == ' ')
+		{
+			p++;
+		}
+
+		if(*p == 0 || *p == '#')
+		{
+			if(eSyntax == S_END)
+			{
+				return PARSE_OK;
+			}
+			return PARSE_ERROR;
+		}
 	}
 
-	return true;
+	return PARSE_OK;
 }
 
 
@@ -712,37 +751,47 @@ bool Compile(char* in, SProgram* pProgram)
 	{
 		char buffer[256];
 		char* ps = p;
-		while((*p != '\n') && (*p != 0))
+		while(((*p != '\n') && (*p != '\r')) && (*p != 0))
 		{
 			p++;					
 		}
+		int len = p - ps;
 		p++;
-		int len = p - ps - 1;
+		if(*p == '\n' || *p == '\r')
+		{
+			p++;
+		}
+
+		if(*p == 0)
+		{
+			break;
+		}
+
+		p++;
 		memcpy(buffer, ps, len);
-		buffer[len] = ' ';
-		buffer[len + 1] = '#';
-		buffer[len + 2] = ' ';
-		buffer[len + 3] = 0;
-//		printf("\nline: \"%s\"\n", buffer);
+		buffer[len] = 0;
+		printf("line: '%s'\n", buffer);
 
 		SSequence item;
         SequenceInit(&item);
-		if(!ParseLine(buffer, &item))
+		EParse eParse = ParseLine(buffer, &item);
+		if(eParse == PARSE_ERROR)
         {
             printf("error parsing program line:%d\n", line);
             return false;
         }
-        
-        SSequence* pSequence = malloc(sizeof(SSequence));
-        *pSequence = item;
-        if(pProgram->pFirst == 0)
-        {
-            pProgram->pFirst = pSequence;
-            pProgram->pLast = pSequence;
+		else if(eParse == PARSE_OK)
+		{
+	        SSequence* pSequence = malloc(sizeof(SSequence));
+	        *pSequence = item;
+	        if(pProgram->pFirst == 0)
+	        {
+	            pProgram->pFirst = pSequence;
+	            pProgram->pLast = pSequence;
+	        }
+	        pProgram->pLast->pNext = pSequence;
+	        pProgram->pLast = pSequence;
         }
-        pProgram->pLast->pNext = pSequence;
-        pProgram->pLast = pSequence;
-        
         line++;
 	}
 	return true;

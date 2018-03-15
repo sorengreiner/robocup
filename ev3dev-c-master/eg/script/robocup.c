@@ -330,6 +330,21 @@ bool Backward(SState* s, int noun0, float value0, int noun1, float value1)
 }
 
 
+bool Stop(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
+	if(s->index == 0)
+	{
+		printf("Stop\n");
+		SetVar(V_SPEED, 0);
+		SetVar(V_ANGLE, 0);
+		UpdateCar(0, 0);
+	}
+
+	return false;
+}
+
+
+
 typedef struct
 {
 	float fOdometer;	// Odometer value at entry

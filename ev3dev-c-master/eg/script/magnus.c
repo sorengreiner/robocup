@@ -252,7 +252,9 @@ SVarItem g_Vars[NUM_VARS] =
 {
 	{"NIL",			0.0 },
 	{"SPEED",		0.0 },
-	{"ODOMETER",	0.0 },
+	{"ODOMETER",		0.0 },
+	{"LODOMETER",		0.0 },
+	{"RODOMETER",		0.0 },
 	{"ANGLE",		0.0 },
 	{"RADIUS",		0.0 },
 	{"TIME",		0.0 },

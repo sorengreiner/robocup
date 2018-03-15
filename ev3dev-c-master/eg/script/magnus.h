@@ -18,6 +18,8 @@ typedef enum
 	V_NIL = 0,
 	V_SPEED,
 	V_ODOMETER,
+	V_LODOMETER,
+	V_RODOMETER,
 	V_ANGLE,
 	V_RADIUS,
 	V_TIME,

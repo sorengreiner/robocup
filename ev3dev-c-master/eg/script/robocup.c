@@ -173,6 +173,8 @@ bool RobocupInit( void )
 	return bDetectMotors && bDetectServoRight && bDetectServoLeft && bDetectServoBatteryLevel && bDetectLineSensor;
 }
 
+// @brief speed	Speed in cm/s
+// @brief wheel turn angle in degrees (angle of fiktive center wheel)
 void UpdateCar(float speed, float angle)
 {
 	printf("UpdateCar %f %f", speed, angle);

@@ -1,0 +1,11 @@
+set speed=10
+followleft odometer=0 until odometer > 1
+set speed=0
+set time=0
+forward until time > 1
+follow odometer=0 speed=80 until odometer > 5
+forward speed=0 until 1 > 0
+set speed=40
+set radius=0.3
+turnleft angle=180
+

@@ -1,2 +1,2 @@
 #!/bin/bash
-./roborun forwardbackward.magnus
+./roborun test2.magnus

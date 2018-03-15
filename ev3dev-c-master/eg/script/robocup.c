@@ -371,6 +371,7 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 //	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
 	if(fOdometer - p->fOdometer > p->fDistance)
 	{
+		SetVar(V_ANGLE, 0);
 		return true;
 	}
 
@@ -410,6 +411,7 @@ bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 //	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
 	if(fOdometer - p->fOdometer > p->fDistance)
 	{
+		SetVar(V_ANGLE, 0);
 		return true;
 	}
 
@@ -445,6 +447,8 @@ void UpdateVars(float delta)
 	float distance = (distanceLeft + distanceRight)/2;
 //	printf("d:%f dl:%f dr:%f\n", distance, distanceLeft, distanceRight);
 	SetVar(V_ODOMETER, distance);
+	SetVar(V_LODOMETER, distanceLeft);
+	SetVar(V_RODOMETER, distanceRight);
 
 	time += delta;
 

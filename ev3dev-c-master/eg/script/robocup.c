@@ -446,9 +446,10 @@ void UpdateVars(float delta)
 	float odometerAbsolute = (odometerLeft + odometerRight)/2;
 	float heading = (180/M_PI)*(odometerLeft - odometerRight)/(car.fBackWidth/1000);
 	float odometer = GetVar(V_ODOMETER);
-	odometer += odometerAbsolute - GetVar(V_MARK);
+	float mark = GetVar(V_MARK);
+	odometer = odometerAbsolute - GetVar(V_MARK);
 
-//	printf("d:%f dl:%f dr:%f\n", distance, distanceLeft, distanceRight);
+//	printf("o:%f lo:%f ro:%f ao:%f m:%f h:%f\n", odometer, odometerLeft, odometerRight, odometerAbsolute, mark, heading);
 	SetVar(V_ODOMETER, odometer);
 	SetVar(V_LODOMETER, odometerLeft);
 	SetVar(V_RODOMETER, odometerRight);

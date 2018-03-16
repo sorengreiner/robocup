@@ -1,2 +1,2 @@
 #!/bin/bash
-./roborun test2.magnus
+./roborun turn.magnus

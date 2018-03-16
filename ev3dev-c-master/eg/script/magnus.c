@@ -948,6 +948,10 @@ void RunProgram(SProgram* pProgram)
             }
             }
         }
+	else
+	{
+		bProceed = true;
+	}
 
         s.index++;
 

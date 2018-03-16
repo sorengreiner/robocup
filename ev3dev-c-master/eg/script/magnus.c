@@ -252,16 +252,20 @@ SVarItem g_Vars[NUM_VARS] =
 {
 	{"NIL",			0.0 },
 	{"SPEED",		0.0 },
-	{"ODOMETER",		0.0 },
-	{"LODOMETER",		0.0 },
-	{"RODOMETER",		0.0 },
+	{"ODOMETER",	0.0 },
+	{"LODOMETER",	0.0 },
+	{"RODOMETER",	0.0 },
+	{"AODOMETER",	0.0 },
+	{"MARK",		0.0 },
 	{"ANGLE",		0.0 },
 	{"RADIUS",		0.0 },
 	{"TIME",		0.0 },
 	{"HEADING",		0.0 },
 	{"XPOS",		0.0 },
-	{"YPOS",		0.0 }
+	{"YPOS",		0.0 },
+	{"STEER",		0.0 }
 };
+
 
 void SetVar(EVar eVar, float value)
 {
@@ -749,24 +753,11 @@ bool Compile(char* in, SProgram* pProgram)
 }
 
 
-
-
-
 bool Set(SState* s, int noun0, float value0, int noun1, float value1) 
 { 
 	if(s->index == 0)
 	{
 		printf("Set\n");
-		if(noun0 < NUM_VARS)
-		{
-			g_Vars[noun0].value = value0;
-		}
-
-		if(noun1 < NUM_VARS)
-		{
-			g_Vars[noun1].value = value1;
-		}
-		s->index++;
 	}
 	return true;
 }
@@ -777,16 +768,6 @@ bool Wait(SState* s, int noun0, float value0, int noun1, float value1)
 	if(s->index == 0)
 	{
 		printf("Wait\n");
-		if(noun0 < NUM_VARS)
-		{
-			g_Vars[noun0].value = value0;
-		}
-
-		if(noun1 < NUM_VARS)
-		{
-			g_Vars[noun1].value = value1;
-		}
-		s->index++;
 	}
 	return false;
 }

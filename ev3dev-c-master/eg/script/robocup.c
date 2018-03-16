@@ -68,13 +68,13 @@ void CarComputeTurningAngle(SCar* pCar, float fAngle, float fSpeed)
 
 	float angularLimit = atan(pCar->fCarLength/radiusMax);
 
-	float fBackWidth = 180.0;
+	
 	if(fabs(v) > angularLimit)
 	{
 		float radius = pCar->fCarLength/tanv;
 		curveCenter = v*radius;
-		curveLeft = v*(radius - fBackWidth/2);
-		curveRight = v*(radius + fBackWidth/2);
+		curveLeft = v*(radius - pCar->fBackWidth/2);
+		curveRight = v*(radius + pCar->fBackWidth/2);
 	}
 
 	pCar->fBackWheelLeftSpeed = fSpeed*curveLeft/curveCenter;
@@ -97,6 +97,7 @@ bool RobocupInit( void )
 {
 	car.fCarLength = 208;
 	car.fCarWidth = 143.46;
+	car.fBackWidth = 180.0;
 
 	char s[256];
 
@@ -308,8 +309,8 @@ bool Forward(SState* s, int noun0, float value0, int noun1, float value1)
 	{
 		printf("Forward\n");
 		float fSpeed = GetVar(V_SPEED);
-		float fAngle = GetVar(V_ANGLE);
-		UpdateCar(fSpeed, fAngle);
+		float fSteer = GetVar(V_STEER);
+		UpdateCar(fSpeed, fSteer);
 	}
 
 	return false;
@@ -322,8 +323,8 @@ bool Backward(SState* s, int noun0, float value0, int noun1, float value1)
 	{
 		printf("Backward\n");
 		float fSpeed = GetVar(V_SPEED);
-		float fAngle = GetVar(V_ANGLE);
-		UpdateCar(-fSpeed, fAngle);
+		float fSteer = GetVar(V_STEER);
+		UpdateCar(-fSpeed, fSteer);
 	}
 
 	return false;
@@ -332,22 +333,22 @@ bool Backward(SState* s, int noun0, float value0, int noun1, float value1)
 
 typedef struct
 {
-	float fOdometer;	// Odometer value at entry
 	float fDistance;	// Distance to complete when turning angle degrees
+	float fHeading;		// Heading at entry
 } STurnState;
 
 
 bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 { 
 	STurnState* p = (STurnState*)s->stack;
+	float fAngle = GetVar(V_ANGLE);
 
 	if(s->index == 0)
 	{
 		printf("TurnLeft\n");
 		// Ignore V_ANGLE while we are turning, but use V_SPEED
-		p->fOdometer = GetVar(V_ODOMETER);
+		p->fHeading = GetVar(V_HEADING);
 		float fSpeed = GetVar(V_SPEED);
-		float fAngle = GetVar(V_ANGLE);
 		float fRadius = GetVar(V_RADIUS); // Turn radius in meter
 		// Limit turn radius
 		if(fRadius < 0.2)
@@ -367,11 +368,10 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 		UpdateCar(fSpeed, fWheelAngle);
 	}
 
-	float fOdometer = GetVar(V_ODOMETER);
+	float fHeading = GetVar(V_HEADING);
 //	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
-	if(fOdometer - p->fOdometer > p->fDistance)
+	if(p->fHeading - fHeading > fAngle)
 	{
-		SetVar(V_ANGLE, 0);
 		return true;
 	}
 
@@ -381,14 +381,14 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 {
 	STurnState* p = (STurnState*)s->stack;
+	float fAngle = GetVar(V_ANGLE);
 
 	if(s->index == 0)
 	{
 		printf("TurnRight\n");
 		// Ignore V_ANGLE while we are turning, but use V_SPEED
-		p->fOdometer = GetVar(V_ODOMETER);
+		p->fHeading = GetVar(V_HEADING);
 		float fSpeed = GetVar(V_SPEED);
-		float fAngle = GetVar(V_ANGLE);
 		float fRadius = GetVar(V_RADIUS); // Turn radius in meter
 		// Limit turn radius
 		if(fRadius < 0.2)
@@ -407,11 +407,10 @@ bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 		UpdateCar(fSpeed, -fWheelAngle);
 	}
 
-	float fOdometer = GetVar(V_ODOMETER);
+	float fHeading = GetVar(V_HEADING);
 //	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
-	if(fOdometer - p->fOdometer > p->fDistance)
+	if(fHeading - p->fHeading > fAngle)
 	{
-		SetVar(V_ANGLE, 0);
 		return true;
 	}
 
@@ -442,13 +441,19 @@ void UpdateVars(float delta)
 	int tachoLeft = tacho_get_position( MOTOR_LEFT, 0 );
 	int tachoRight = tacho_get_position( MOTOR_RIGHT, 0 );
 //	printf("tacho: %d, %d\n", tachoLeft, tachoRight);
-	float distanceLeft = TachoToMeter(-tachoLeft);
-	float distanceRight = TachoToMeter(-tachoRight);
-	float distance = (distanceLeft + distanceRight)/2;
+	float odometerLeft = TachoToMeter(-tachoLeft);
+	float odometerRight = TachoToMeter(-tachoRight);
+	float odometerAbsolute = (odometerLeft + odometerRight)/2;
+	float heading = (180/M_PI)*(odometerLeft - odometerRight)/(car.fBackWidth/1000);
+	float odometer = GetVar(V_ODOMETER);
+	odometer += odometerAbsolute - GetVar(V_MARK);
+
 //	printf("d:%f dl:%f dr:%f\n", distance, distanceLeft, distanceRight);
-	SetVar(V_ODOMETER, distance);
-	SetVar(V_LODOMETER, distanceLeft);
-	SetVar(V_RODOMETER, distanceRight);
+	SetVar(V_ODOMETER, odometer);
+	SetVar(V_LODOMETER, odometerLeft);
+	SetVar(V_RODOMETER, odometerRight);
+	SetVar(V_AODOMETER, odometerAbsolute);
+	SetVar(V_HEADING, heading);
 
 	time += delta;
 
@@ -456,6 +461,7 @@ void UpdateVars(float delta)
 
 	UpdateLineSensor();
 }
+
 
 void AssignVar(int noun, float value)
 {
@@ -469,27 +475,42 @@ void AssignVar(int noun, float value)
 	case V_ODOMETER:
 		{
 			SetVar(noun, value);
-			int tacho = MeterToTacho(value);
-			tacho_set_position( MOTOR_LEFT, tacho );
-			tacho_set_position( MOTOR_RIGHT, tacho );
+			float fOdometerAbsolute = GetVar(V_AODOMETER);
+			SetVar(V_MARK, fOdometerAbsolute);
 		}
 		break;
+	case V_LODOMETER:
+		{
+		SetVar(noun, value);
+		int tacho = MeterToTacho(value);
+		tacho_set_position( MOTOR_LEFT, tacho );
+		}
+		break;
+	case V_RODOMETER:
+		{
+		SetVar(noun, value);
+		int tacho = MeterToTacho(value);
+		tacho_set_position( MOTOR_RIGHT, tacho );
+		}
+		break;
+	case V_AODOMETER:
+		{
+		SetVar(noun, value);
+		int tacho = MeterToTacho(value);
+		tacho_set_position( MOTOR_LEFT, tacho );
+		tacho_set_position( MOTOR_RIGHT, tacho );
+		}
+		break;
+	case V_MARK:
 	case V_ANGLE:
-		SetVar(noun, value);
-		break;
+	case V_RADIUS:
 	case V_TIME:
-		SetVar(noun, value);
-		break;
 	case V_HEADING:
-		SetVar(noun, value);
-		break;
 	case V_XPOS:
-		SetVar(noun, value);
-		break;
 	case V_YPOS:
-		SetVar(noun, value);
-		break;
+	case V_STEER:
 	default:
+		SetVar(noun, value);
 		break;
 	}
 }

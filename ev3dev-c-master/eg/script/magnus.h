@@ -16,16 +16,19 @@ typedef enum
 typedef enum
 {
 	V_NIL = 0,
-	V_SPEED,
-	V_ODOMETER,
-	V_LODOMETER,
-	V_RODOMETER,
-	V_ANGLE,
-	V_RADIUS,
-	V_TIME,
+	V_SPEED,	// Speed of car in cm/s
+	V_ODOMETER,	// Odometer in m
+	V_LODOMETER,// Odometer in m of left back wheel
+	V_RODOMETER,// Odometer in m of right back wheel
+	V_AODOMETER,// Absolute odometer in m ( calculated as average between LODOMETER and RODOMETER )
+	V_MARK,		// Odometer reference in m ( Marks the value of AODOMETER when ODOMETER is set/reset )
+	V_ANGLE,	// Angle setting in turn commands
+	V_RADIUS,	// Radius of turning circle in turn commands
+	V_TIME,		// Time in s
 	V_HEADING,	// heading in degrees relative to north
 	V_XPOS,		// X position as eastward value relative to starting point
 	V_YPOS,		// Y position as eastward value relative to starting point
+	V_STEER,	// Steering angle of front wheels
 	NUM_VARS
 } EVar;
 

@@ -9,6 +9,7 @@ typedef struct
 {
 	float fCarLength;
 	float fCarWidth;
+	float fBackWidth;
 
 	float fAngle;
 	float fSpeed;

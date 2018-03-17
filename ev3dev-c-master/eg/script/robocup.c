@@ -3,6 +3,7 @@
 #include "line.h"
 #include "brick.h"
 #include "ev3_servo.h"
+#include "keys.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -528,6 +529,12 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
+	if(!KeysOpen())
+	{
+		printf("keys wont open\n");
+		return 1;
+	}
+ 
 	LineInit(&lineSensor);
 
 	RobocupInit();
@@ -559,6 +566,8 @@ int main(int argc, char* argv[])
 	tacho_run_forever( MOTOR_BOTH );
 	set_servo_command_inx(snLeft, SERVO_FLOAT);
 	set_servo_command_inx(snRight, SERVO_FLOAT);	
+
+	KeysClose();
 
 	brick_uninit();	
     return 0;

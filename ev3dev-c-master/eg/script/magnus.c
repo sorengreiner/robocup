@@ -7,6 +7,7 @@
 #include <string.h>
 #include <strings.h>
 #include <math.h>
+#include "keys.h"
 
 
 #ifdef WIN32
@@ -904,64 +905,70 @@ void RunProgram(SProgram* pProgram)
 		uint64_t t1 = t0;
 		t0 = TimeMilliseconds();
 		float delta = (t0 - t1);
-
-        bool bProceed = false;
-        if(pSequence->pAction)
-        {
-            if(s.index == 0)
-            {
-                AssignVar(pSequence->noun0, pSequence->value0);
-                AssignVar(pSequence->noun1, pSequence->value1);
-            }
-
-            UpdateVars(delta/1000.0);
-
-            bool bImmidiateReturn = pSequence->pAction(&s, pSequence->noun0, pSequence->value0, pSequence->noun1, pSequence->value1);
-
-            if(bImmidiateReturn)
-            {
-		bProceed = true;
-            }
-            else
-            {
-            if((pSequence->pConditionA != 0) && (pSequence->pConditionB != 0) && (pSequence->eBooleanOperator != NUM_BOOLEANOPERATOR))
-            {
-                switch(pSequence->eBooleanOperator)
+		
+		bool bProceed = false;
+		if(pSequence->pAction)
+		{
+			if(s.index == 0)
+			{
+				AssignVar(pSequence->noun0, pSequence->value0);
+				AssignVar(pSequence->noun1, pSequence->value1);
+			}
+			
+			UpdateVars(delta/1000.0);
+			
+			bool bImmidiateReturn = pSequence->pAction(&s, pSequence->noun0, pSequence->value0, pSequence->noun1, pSequence->value1);
+			
+			if(bImmidiateReturn)
+			{
+				bProceed = true;
+			}
+			else
+			{
+				if((pSequence->pConditionA != 0) && (pSequence->pConditionB != 0) && (pSequence->eBooleanOperator != NUM_BOOLEANOPERATOR))
 				{
-				case B_AND:
-					bProceed = pSequence->pConditionA(&s, pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1)
+					switch(pSequence->eBooleanOperator)
+					{
+						case B_AND:
+						bProceed = pSequence->pConditionA(&s, pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1)
 						&& pSequence->pConditionB(&s, pSequence->right_noun0, pSequence->right_value0, pSequence->right_noun1, pSequence->right_value1);
-					break;
-
-				case B_OR:
-					bProceed = pSequence->pConditionA(&s, pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1)
+						break;
+					
+						case B_OR:
+						bProceed = pSequence->pConditionA(&s, pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1)
 						|| pSequence->pConditionB(&s, pSequence->right_noun0, pSequence->right_value0, pSequence->right_noun1, pSequence->right_value1);
-                    break;
-                }
-            }
-            else if(pSequence->pConditionA != 0)
-            {
-                bProceed = pSequence->pConditionA(&s, pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1);
-            }
-            else
-            {
-            }
-            }
-        }
-	else
-	{
-		bProceed = true;
-	}
+						break;
+					}
+				}
+				else if(pSequence->pConditionA != 0)
+				{
+					bProceed = pSequence->pConditionA(&s, pSequence->left_noun0, pSequence->left_value0, pSequence->left_noun1, pSequence->left_value1);
+				}
+				else
+				{
+				}
+			}
+		}
+		else
+		{
+			bProceed = true;
+		}
 
-        s.index++;
+		s.index++;
+		
+		uint8_t keys = KeysRead();
+		if(keys == EV3_KEY_BACK)
+		{
+			break;
+		} 
 
-        if(bProceed)
-        {
-            pSequence = pSequence->pNext;
-            s.index = 0;
-        }
-
-        sleep_ms(10);
+		if(bProceed)
+		{
+		    pSequence = pSequence->pNext;
+		    s.index = 0;
+		}
+		
+		sleep_ms(10);
     }
 }
 

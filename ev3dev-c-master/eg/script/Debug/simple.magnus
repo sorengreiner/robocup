@@ -22,12 +22,12 @@ forward speed=10 until odometer > 1.0
 set odometer=0
 turnright angle=90
 forward speed=10 until odometer > 0.75
-turnleft angel=120
+turnleft angle=120
 set odometer=0
-forward speed=10 until odometer >0.75
+forward speed=10 until odometer > 0.75
 set odometer=0
 turnleft angel=180
-forward speed=20 until odometer >0.75
+forward speed=20 until odometer > 0.75
 
 
 

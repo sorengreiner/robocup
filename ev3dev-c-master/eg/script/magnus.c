@@ -17,7 +17,7 @@
 #else
 #include <unistd.h> // for usleep
 #endif
-
+/*
 void sleep_ms(int milliseconds) // cross-platform sleep function
 {
 #ifdef WIN32
@@ -31,7 +31,7 @@ void sleep_ms(int milliseconds) // cross-platform sleep function
     usleep(milliseconds * 1000);
 #endif
 }
-
+*/
 uint64_t TimeMilliseconds(void)
 {
 #ifdef WIN32
@@ -959,6 +959,7 @@ void RunProgram(SProgram* pProgram)
 		uint8_t keys = KeysRead();
 		if(keys == EV3_KEY_BACK)
 		{
+			printf("Program cancelled\n");
 			break;
 		} 
 

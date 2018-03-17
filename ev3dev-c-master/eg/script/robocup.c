@@ -179,7 +179,7 @@ bool RobocupInit( void )
 // @brief wheel turn angle in degrees (angle of fiktive center wheel)
 void UpdateCar(float speed, float angle)
 {
-	printf("UpdateCar %f %f", speed, angle);
+//	printf("UpdateCar %f %f", speed, angle);
 	CarComputeTurningAngle(&car, angle, speed);
 
 	int motorSetpointLeft = -(int)(max_speed * car.fBackWheelLeftSpeed / 100); 

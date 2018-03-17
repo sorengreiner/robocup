@@ -1,2 +1,3 @@
 #!/bin/bash
-./roborun turn.magnus
+git pull
+./roborun ../Debug/simple.magnus

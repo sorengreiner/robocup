@@ -28,10 +28,28 @@ uint8_t snColor;
 uint8_t snLine;
 uint8_t snGyro;
 
+
+typedef struct
+{
+	uint64_t t0;
+	uint64_t t1;
+	float rx0;
+	float ry0;
+	float rz0;
+	float rx1;
+	float ry1;
+	float rz1;
+	float yaw;
+} SInertialNavigation;
+
+
 int leftCenter = -4;
 int rightCenter = 0;
 SCar car;
+SInertialNavigation inertial;
+float fGyroDrift = 0.083;
 
+void UpdateGyro();
 
 int AngleToServoLeft(float angle)
 {
@@ -176,8 +194,14 @@ bool RobocupInit( void )
 	bool bDetectGyro = false;
 	if ( ev3_search_sensor( MS_ABSOLUTE_IMU, &snGyro, 0 )) 
 	{
+		set_sensor_command_inx( snGyro, MS_ANGLE_RESET );
 		set_sensor_mode( snGyro, "GYRO" ); 
 		set_sensor_command_inx( snGyro, MS_ABSOLUTE_IMU_ACCEL_2G );
+		set_sensor_command_inx( snGyro, MS_ABSOLUTE_IMU_BEGIN_COMP_CAL );
+		sleep_ms(200);
+		set_sensor_command_inx( snGyro, MS_ABSOLUTE_IMU_END_COMP_CAL );
+		UpdateGyro();
+	
 		bDetectGyro = true;
 	}
 	printf("%s Detecting gyro\n", bDetectGyro ? "[  OK  ]" : "[FAILED]");
@@ -223,20 +247,8 @@ void UpdateLineSensor(void)
 
 uint64_t TimeMilliseconds(void);
 
-typedef struct
-{
-	uint64_t t0;
-	uint64_t t1;
-	float rx0;
-	float ry0;
-	float rz0;
-	float rx1;
-	float ry1;
-	float rz1;
-	float yaw;
-} SInertialNavigation;
 
-SInertialNavigation inertial;
+//SInertialNavigation inertial;
 
 void InertialNavigationInit(void)
 {
@@ -251,6 +263,8 @@ void InertialNavigationInit(void)
 	inertial.yaw = 0;		
 }
 
+
+const float fGyroRateUnit = 0.00875*90/85;
 
 void UpdateGyro(void)
 {
@@ -270,11 +284,11 @@ void UpdateGyro(void)
 
 		if(z > 0)
 		{
-			rz = (z + 0.5)*0.0092;
+			rz = (z + 0.0)*fGyroRateUnit;
 		}
 		else
 		{
-			rz = (z - 0.5)*0.0092;
+			rz = (z - 0.0)*fGyroRateUnit;
 		}
 
 
@@ -287,7 +301,7 @@ void UpdateGyro(void)
 		inertial.t0 = inertial.t1;
 		inertial.t1 = t;
 		float dt = (inertial.t1 - inertial.t0)/1000.0;
-		inertial.yaw += dt*(inertial.rz0 + inertial.rz1)/2.0;		
+		inertial.yaw += dt*(inertial.rz0 + inertial.rz1)/2.0 - fGyroDrift*dt;		
 	
 		printf("x:%3.1f y:%3.1f z:%3.1f yaw:%f\n", rx, ry, rz, inertial.yaw);
 	}
@@ -491,6 +505,7 @@ bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 		p->fDistance = fRadius*fAngle*M_PI/180.0;
 
 		float fWheelAngle = 180.0*atan2(car.fCarLength/1000, fRadius)/M_PI;
+		printf("yaw:%f\n", p->fHeading);
 		UpdateCar(fSpeed, -fWheelAngle);
 	}
 

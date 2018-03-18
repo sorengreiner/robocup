@@ -177,6 +177,7 @@ bool RobocupInit( void )
 	if ( ev3_search_sensor( MS_ABSOLUTE_IMU, &snGyro, 0 )) 
 	{
 		set_sensor_mode( snGyro, "GYRO" ); 
+		set_sensor_command_inx( snGyro, MS_ABSOLUTE_IMU_ACCEL_2G );
 		bDetectGyro = true;
 	}
 	printf("%s Detecting gyro\n", bDetectGyro ? "[  OK  ]" : "[FAILED]");
@@ -226,19 +227,68 @@ typedef struct
 {
 	uint64_t t0;
 	uint64_t t1;
+	float rx0;
+	float ry0;
+	float rz0;
+	float rx1;
+	float ry1;
+	float rz1;
+	float yaw;
 } SInertialNavigation;
+
+SInertialNavigation inertial;
+
+void InertialNavigationInit(void)
+{
+	inertial.t0 = TimeMilliseconds() - 1;
+	inertial.t1 = inertial.t0;
+	inertial.rx0 = 0;
+	inertial.ry0 = 0;
+	inertial.rz0 = 0;
+	inertial.rx1 = 0;
+	inertial.ry1 = 0;
+	inertial.rz1 = 0;
+	inertial.yaw = 0;		
+}
 
 
 void UpdateGyro(void)
 {
 	uint8_t values[6];
+	uint64_t t = TimeMilliseconds();
 	int n = get_sensor_bin_data( snGyro, values, 6);
-	printf("gyro[%d] ", n);
-	for(int i = 0; i < n; i++)
+	if(n == 6)
 	{
-		printf("%d ", values[i]);
+		int16_t x = (int)values[0] | ((int)values[1] << 8);
+		int16_t y = (int)values[2] | ((int)values[3] << 8);
+		int16_t z = (int)values[4] | ((int)values[5] << 8);
+		float rx = (x + 0.5)*0.00875;
+		float ry = (y + 0.5)*0.00875;
+		float rz;
+
+		if(z > 0)
+		{
+			rz = (z + 0.5)*0.00875;
+		}
+		else
+		{
+			rz = (z - 0.5)*0.00875;
+		}
+
+
+		inertial.rx0 = inertial.rx1;
+		inertial.ry0 = inertial.ry1;
+		inertial.rz0 = inertial.rz1;
+		inertial.rx1 = rx;
+		inertial.ry1 = ry;
+		inertial.rz1 = rz;
+		inertial.t0 = inertial.t1;
+		inertial.t1 = t;
+		float dt = (inertial.t1 - inertial.t0)/1000.0;
+		inertial.yaw += dt*(inertial.rz0 + inertial.rz1)/2.0;		
+	
+//		printf("x:%3.1f y:%3.1f z:%3.1f yaw:%f\n", rx, ry, rz, inertial.yaw);
 	}
-	printf("\n");
 }
 
 
@@ -397,7 +447,7 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 		p->fDistance = fRadius*fAngle*M_PI/180.0;
 
 		float fWheelAngle = 180.0*atan2(car.fCarLength/1000, fRadius)/M_PI;
-		printf("angle=%f wangle=%f radius=%f\n", fAngle, fWheelAngle, fRadius);
+		printf("angle=%f wangle=%f radius=%f yaw:%f\n", fAngle, fWheelAngle, fRadius, p->fHeading);
 		UpdateCar(fSpeed, fWheelAngle);
 	}
 
@@ -405,6 +455,7 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 //	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
 	if(p->fHeading - fHeading > fAngle)
 	{
+		printf("yaw:%f\n", fHeading);
 		return true;
 	}
 
@@ -444,6 +495,7 @@ bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 //	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
 	if(fHeading - p->fHeading > fAngle)
 	{
+		printf("yaw:%f\n", fHeading);
 		return true;
 	}
 
@@ -470,6 +522,7 @@ float TachoToMeter(int tacho)
 void UpdateVars(float delta)
 {
 	float time = GetVar(V_TIME);
+	UpdateGyro();
 	// Update odometer
 	int tachoLeft = tacho_get_position( MOTOR_LEFT, 0 );
 	int tachoRight = tacho_get_position( MOTOR_RIGHT, 0 );
@@ -477,7 +530,8 @@ void UpdateVars(float delta)
 	float odometerLeft = TachoToMeter(-tachoLeft);
 	float odometerRight = TachoToMeter(-tachoRight);
 	float odometerAbsolute = (odometerLeft + odometerRight)/2;
-	float heading = (180/M_PI)*(odometerLeft - odometerRight)/(car.fBackWidth/1000);
+//	float heading = (180/M_PI)*(odometerLeft - odometerRight)/(car.fBackWidth/1000);
+	float heading = inertial.yaw;
 	float odometer = GetVar(V_ODOMETER);
 	float mark = GetVar(V_MARK);
 	odometer = odometerAbsolute - GetVar(V_MARK);
@@ -568,6 +622,7 @@ int main(int argc, char* argv[])
 	}
  
 	LineInit(&lineSensor);
+	InertialNavigationInit();
 
 	if(!RobocupInit())
 	{

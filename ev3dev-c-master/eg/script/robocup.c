@@ -262,17 +262,17 @@ void UpdateGyro(void)
 		int16_t x = (int)values[0] | ((int)values[1] << 8);
 		int16_t y = (int)values[2] | ((int)values[3] << 8);
 		int16_t z = (int)values[4] | ((int)values[5] << 8);
-		float rx = (x + 0.5)*0.00875;
-		float ry = (y + 0.5)*0.00875;
+		float rx = (x + 0.0)*0.00875;
+		float ry = (y + 0.0)*0.00875;
 		float rz;
 
 		if(z > 0)
 		{
-			rz = (z + 0.5)*0.00875;
+			rz = (z + 0.0)*0.00875;
 		}
 		else
 		{
-			rz = (z - 0.5)*0.00875;
+			rz = (z - 0.0)*0.00875;
 		}
 
 
@@ -429,7 +429,7 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 	if(s->index == 0)
 	{
 		printf("TurnLeft\n");
-		// Ignore V_ANGLE while we are turning, but use V_SPEED
+		// Ignore V_STEER while we are turning, but use V_SPEED
 		p->fHeading = GetVar(V_HEADING);
 		float fSpeed = GetVar(V_SPEED);
 		float fRadius = GetVar(V_RADIUS); // Turn radius in meter
@@ -455,6 +455,7 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 //	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
 	if(p->fHeading - fHeading > fAngle)
 	{
+		UpdateCar(fSpeed, 0);
 		printf("yaw:%f\n", fHeading);
 		return true;
 	}
@@ -470,7 +471,7 @@ bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 	if(s->index == 0)
 	{
 		printf("TurnRight\n");
-		// Ignore V_ANGLE while we are turning, but use V_SPEED
+		// Ignore V_STEER while we are turning, but use V_SPEED
 		p->fHeading = GetVar(V_HEADING);
 		float fSpeed = GetVar(V_SPEED);
 		float fRadius = GetVar(V_RADIUS); // Turn radius in meter
@@ -495,6 +496,7 @@ bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 //	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
 	if(fHeading - p->fHeading > fAngle)
 	{
+		UpdateCar(fSpeed, 0);
 		printf("yaw:%f\n", fHeading);
 		return true;
 	}

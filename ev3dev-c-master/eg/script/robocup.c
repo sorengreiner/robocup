@@ -257,6 +257,8 @@ void UpdateGyro(void)
 	uint8_t values[6];
 	uint64_t t = TimeMilliseconds();
 	int n = get_sensor_bin_data( snGyro, values, 6);
+	uint64_t t2 = TimeMilliseconds();
+	t = (t + t2)/2;
 	if(n == 6)
 	{
 		int16_t x = (int)values[0] | ((int)values[1] << 8);
@@ -268,11 +270,11 @@ void UpdateGyro(void)
 
 		if(z > 0)
 		{
-			rz = (z + 0.0)*0.00875;
+			rz = (z + 0.5)*0.0092;
 		}
 		else
 		{
-			rz = (z - 0.0)*0.00875;
+			rz = (z - 0.5)*0.0092;
 		}
 
 
@@ -287,7 +289,7 @@ void UpdateGyro(void)
 		float dt = (inertial.t1 - inertial.t0)/1000.0;
 		inertial.yaw += dt*(inertial.rz0 + inertial.rz1)/2.0;		
 	
-//		printf("x:%3.1f y:%3.1f z:%3.1f yaw:%f\n", rx, ry, rz, inertial.yaw);
+		printf("x:%3.1f y:%3.1f z:%3.1f yaw:%f\n", rx, ry, rz, inertial.yaw);
 	}
 }
 
@@ -455,7 +457,7 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 //	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
 	if(p->fHeading - fHeading > fAngle)
 	{
-		UpdateCar(fSpeed, 0);
+		UpdateCar(GetVar(V_SPEED), 0);
 		printf("yaw:%f\n", fHeading);
 		return true;
 	}
@@ -496,7 +498,7 @@ bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 //	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
 	if(fHeading - p->fHeading > fAngle)
 	{
-		UpdateCar(fSpeed, 0);
+		UpdateCar(GetVar(V_SPEED), 0);
 		printf("yaw:%f\n", fHeading);
 		return true;
 	}

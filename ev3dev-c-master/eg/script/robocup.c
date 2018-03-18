@@ -26,6 +26,7 @@ uint8_t snRight;
 uint8_t snLeft;
 uint8_t snColor;
 uint8_t snLine;
+uint8_t snGyro;
 
 int leftCenter = -4;
 int rightCenter = 0;
@@ -172,7 +173,15 @@ bool RobocupInit( void )
 	}
 	printf("%s Detecting line sensor\n", bDetectLineSensor ? "[  OK  ]" : "[FAILED]");
 
-	return bDetectMotors && bDetectServoRight && bDetectServoLeft && bDetectServoBatteryLevel && bDetectLineSensor;
+	bool bDetectGyro = false;
+	if ( ev3_search_sensor( MS_ABSOLUTE_IMU, &snGyro, 0 )) 
+	{
+		set_sensor_mode( snGyro, "GYRO" ); 
+		bDetectGyro = true;
+	}
+	printf("%s Detecting gyro\n", bDetectGyro ? "[  OK  ]" : "[FAILED]");
+
+	return bDetectMotors && bDetectServoRight && bDetectServoLeft && bDetectServoBatteryLevel && bDetectLineSensor && bDetectGyro;
 }
 
 // @brief speed	Speed in cm/s
@@ -190,7 +199,7 @@ void UpdateCar(float speed, float angle)
 
 	int servoLeftSp = AngleToServoLeft(car.fFrontWheelLeftAngle);
 	int servoRightSp = AngleToServoRight(car.fFrontWheelRightAngle); 
-	printf("servo: %d %d\n", servoLeftSp, servoRightSp);
+//	printf("servo: %d %d\n", servoLeftSp, servoRightSp);
 	set_servo_position_sp(snLeft, servoLeftSp);
 	set_servo_position_sp(snRight, servoRightSp);
 }
@@ -209,6 +218,29 @@ void UpdateLineSensor(void)
 //		printf("le: %d %f re: %d %f\n", lineSensor.nLeftEdges, lineSensor.leftEdge, lineSensor.nRightEdges, lineSensor.rightEdge);
 	}
 }
+
+
+uint64_t TimeMilliseconds(void);
+
+typedef struct
+{
+	uint64_t t0;
+	uint64_t t1;
+} SInertialNavigation;
+
+
+void UpdateGyro(void)
+{
+	uint8_t values[6];
+	int n = get_sensor_bin_data( snGyro, values, 6);
+	printf("gyro[%d] ", n);
+	for(int i = 0; i < n; i++)
+	{
+		printf("%d ", values[i]);
+	}
+	printf("\n");
+}
+
 
 //-----------------------------------------------------------------------------
 // Script handler functions
@@ -537,7 +569,11 @@ int main(int argc, char* argv[])
  
 	LineInit(&lineSensor);
 
-	RobocupInit();
+	if(!RobocupInit())
+	{
+		printf("Robocup init failed\n");
+		return 1;
+	}
 
 	if(argc > 1)
 	{
@@ -561,6 +597,9 @@ int main(int argc, char* argv[])
 		free(p);
 		fclose(file);
 	}
+
+	UpdateCar(0,0);
+	sleep_ms(500);
 
 	tacho_set_speed_sp( MOTOR_BOTH, 0 );
 	tacho_run_forever( MOTOR_BOTH );

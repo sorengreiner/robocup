@@ -192,14 +192,12 @@ bool RobocupInit( void )
 	printf("%s Detecting line sensor\n", bDetectLineSensor ? "[  OK  ]" : "[FAILED]");
 
 	bool bDetectGyro = false;
-	if ( ev3_search_sensor( MS_ABSOLUTE_IMU, &snGyro, 0 )) 
+	if ( ev3_search_sensor( LEGO_EV3_GYRO, &snGyro, 0 )) 
 	{
-		set_sensor_command_inx( snGyro, MS_ANGLE_RESET );
-		set_sensor_mode( snGyro, "GYRO" ); 
-		set_sensor_command_inx( snGyro, MS_ABSOLUTE_IMU_ACCEL_2G );
-		set_sensor_command_inx( snGyro, MS_ABSOLUTE_IMU_BEGIN_COMP_CAL );
-		sleep_ms(200);
-		set_sensor_command_inx( snGyro, MS_ABSOLUTE_IMU_END_COMP_CAL );
+		set_sensor_mode_inx( snGyro, LEGO_EV3_GYRO_GYRO_CAL );
+		printf("Calibrating gyro");
+		sleep_ms(2000);
+		set_sensor_mode_inx( snGyro, LEGO_EV3_GYRO_GYRO_ANG ); 
 		UpdateGyro();
 	
 		bDetectGyro = true;
@@ -268,42 +266,12 @@ const float fGyroRateUnit = 0.00875*90/85;
 
 void UpdateGyro(void)
 {
-	uint8_t values[6];
+	float value;
 	uint64_t t = TimeMilliseconds();
-	int n = get_sensor_bin_data( snGyro, values, 6);
-	uint64_t t2 = TimeMilliseconds();
-	t = (t + t2)/2;
-	if(n == 6)
+	if(get_sensor_value0(snGyro, &value) > 0)
 	{
-		int16_t x = (int)values[0] | ((int)values[1] << 8);
-		int16_t y = (int)values[2] | ((int)values[3] << 8);
-		int16_t z = (int)values[4] | ((int)values[5] << 8);
-		float rx = (x + 0.0)*0.00875;
-		float ry = (y + 0.0)*0.00875;
-		float rz;
-
-		if(z > 0)
-		{
-			rz = (z + 0.0)*fGyroRateUnit;
-		}
-		else
-		{
-			rz = (z - 0.0)*fGyroRateUnit;
-		}
-
-
-		inertial.rx0 = inertial.rx1;
-		inertial.ry0 = inertial.ry1;
-		inertial.rz0 = inertial.rz1;
-		inertial.rx1 = rx;
-		inertial.ry1 = ry;
-		inertial.rz1 = rz;
-		inertial.t0 = inertial.t1;
-		inertial.t1 = t;
-		float dt = (inertial.t1 - inertial.t0)/1000.0;
-		inertial.yaw += dt*(inertial.rz0 + inertial.rz1)/2.0 - fGyroDrift*dt;		
-	
-		printf("x:%3.1f y:%3.1f z:%3.1f yaw:%f\n", rx, ry, rz, inertial.yaw);
+		inertial.yaw = value;
+		printf("yaw:%f\n", inertial.yaw);
 	}
 }
 

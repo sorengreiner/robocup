@@ -1,19 +1,19 @@
 
-PROGRAM = roborun
+PROGRAM = test
 
-OBJECTS_C = robocup.o magnus.o line.o keys.o pidr.o
+OBJECTS_C = main.o pidr.o
 
 FLAGS_C = -std=gnu99 -O2
 
-FLAGS_LINKER = -lm -lev3dev-c -pthread
+FLAGS_LINKER = -lm
 
 HEADERS =
 
-INCLUDES = -I.. -I../../../source/ev3
+INCLUDES = -I.. -I../../ev3dev-c-master/eg/script
 
-VPATH = ..
+VPATH = .:../../ev3dev-c-master/eg/script
 
-CC = arm-linux-gnueabi-gcc
+CC = gcc
 
 all: $(PROGRAM)
 

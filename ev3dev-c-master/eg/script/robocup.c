@@ -409,6 +409,7 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 { 
 	STurnState* p = (STurnState*)s->stack;
 	float fAngle = GetVar(V_ANGLE);
+//	float fAngle = 90;
 
 	if(s->index == 0)
 	{
@@ -428,16 +429,44 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 			fRadius = 100.0;
 		}
 
-		p->fDistance = fRadius*fAngle*M_PI/180.0;
+//		p->fDistance = fRadius*90*M_PI/180.0;
 
-		float fWheelAngle = 180.0*atan2(car.fCarLength/1000, fRadius)/M_PI;
-		printf("angle=%f wangle=%f radius=%f yaw:%f\n", fAngle, fWheelAngle, fRadius, p->fHeading);
-		UpdateCar(fSpeed, fWheelAngle);
+//		float fWheelAngle = 180.0*atan2(car.fCarLength/1000, fRadius)/M_PI;
+//		printf("angle=%f wangle=%f radius=%f yaw:%f\n", fAngle, fWheelAngle, fRadius, p->fHeading);
+//		UpdateCar(fSpeed, fWheelAngle);
 	}
 
 	float fHeading = GetVar(V_HEADING);
 //	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
-	if(p->fHeading - fHeading > fAngle)
+//	if(p->fHeading - fHeading > fAngle)
+	float diff = fAngle - fHeading;
+	float fSteer = -diff*2;
+	if(fSteer > 0)
+	{
+		if(fSteer > 30)
+		{
+			fSteer = 30;
+		}
+		else if(fSteer < 5)
+		{
+			fSteer = 5;
+		}
+	}
+	else
+	{
+		if(fSteer < - 30)
+		{
+			fSteer = -30;	
+		}
+		else if(fSteer > -5)
+		{
+			fSteer = -5;
+		}
+	}
+
+	UpdateCar(GetVar(V_SPEED), fSteer);
+
+	if(fHeading <= fAngle)
 	{
 		UpdateCar(GetVar(V_SPEED), 0);
 		printf("yaw:%f\n", fHeading);
@@ -470,16 +499,45 @@ bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 			fRadius = 100.0;
 		}
 
-		p->fDistance = fRadius*fAngle*M_PI/180.0;
+//		p->fDistance = fRadius*90*M_PI/180.0;
 
-		float fWheelAngle = 180.0*atan2(car.fCarLength/1000, fRadius)/M_PI;
-		printf("yaw:%f\n", p->fHeading);
-		UpdateCar(fSpeed, -fWheelAngle);
+//		float fWheelAngle = 180.0*atan2(car.fCarLength/1000, fRadius)/M_PI;
+//		printf("yaw:%f\n", p->fHeading);
+//		UpdateCar(fSpeed, -fWheelAngle);
 	}
 
 	float fHeading = GetVar(V_HEADING);
 //	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
-	if(fHeading - p->fHeading > fAngle)
+//	if(fHeading - p->fHeading > fAngle)
+	float diff = fAngle - fHeading;
+	float fSteer = -diff*2;
+
+	if(fSteer > 0)
+	{
+		if(fSteer > 30)
+		{
+			fSteer = 30;
+		}
+		else if(fSteer < 5)
+		{
+			fSteer = 5;
+		}
+	}
+	else
+	{
+		if(fSteer < - 30)
+		{
+			fSteer = -30;	
+		}
+		else if(fSteer > -5)
+		{
+			fSteer = -5;
+		}
+	}
+
+	UpdateCar(GetVar(V_SPEED), fSteer);
+
+	if(fHeading >= fAngle)
 	{
 		UpdateCar(GetVar(V_SPEED), 0);
 		printf("yaw:%f\n", fHeading);

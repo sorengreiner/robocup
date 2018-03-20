@@ -26,12 +26,11 @@ void LinePrint(SLine* pLine)
     }
     printf("}");
 
-    printf("left[%d]{%f} ", pLine->nLeftEdges, pLine->leftEdge);
-    printf("right[%d]{%f} ", pLine->nRightEdges, pLine->rightEdge);
+    printf("l%d:%2.3f c:%2.3f r%d:%2.3f", pLine->nLeftEdges, pLine->leftEdge, pLine->p0, pLine->nRightEdges, pLine->rightEdge);
 }
 
 // Compute w3 point weighted average around pos
-float WeightedAverage(int8_t* derivative, int i, int n)
+float WeightedAverage(float* derivative, int i, int n)
 {
 	float a = i > 0 ? derivative[i - 1] : 0;
 	float b = derivative[i];
@@ -46,17 +45,17 @@ float WeightedAverage(int8_t* derivative, int i, int n)
 void SearchLeftEdges(SLine* pLine)
 {
 	// Search for left edges
-	int8_t derivative[POINTS + 1];
+	float derivative[POINTS + 1];
 	for(int i = 0; i < POINTS + 1; i++)
 	{
-		int8_t diff;
+		float diff;
 		if(i > 0)
 		{
-			diff = pLine->data[i] - pLine->data[i - 1];
+			diff = pLine->norm[i] - pLine->norm[i - 1];
 		}
 		else
 		{
-			diff = pLine->data[i];
+			diff = pLine->norm[i];
 		}
 
 		derivative[i] = 0;
@@ -91,17 +90,17 @@ void SearchLeftEdges(SLine* pLine)
 void SearchRightEdges(SLine* pLine)
 {
 	// Search for right edges
-	int8_t derivative[POINTS + 1];
+	float derivative[POINTS + 1];
 	for(int i = 0; i < POINTS + 1; i++)
 	{
-		int8_t diff;
+		float diff;
 		if(i > 0)
 		{
-			diff = pLine->data[i] - pLine->data[i - 1];
+			diff = pLine->norm[i] - pLine->norm[i - 1];
 		}
 		else
 		{
-			diff = pLine->data[i];
+			diff = pLine->norm[i];
 		}
 
 		derivative[i] = 0;
@@ -134,8 +133,23 @@ void SearchRightEdges(SLine* pLine)
 
 
 
-void LineAnalyze(SLine* pLine)
+void LineAnalyze(SLine* pLine, float base, float high)
 {
+	// Normalize values to [base, high]
+    for(int i = 0; i < POINTS; i++)
+    {
+		float val = ((float)pLine->data[i] - base)/(high - base);
+		if(val < 0)
+		{
+			val = 0;
+		}
+		else if(val > 1)
+		{
+			val = 1;
+		}
+		pLine->norm[i] = val;
+	}
+
     pLine->n = 0;
     pLine->p0 = 0.0f;
 	pLine->nLeftEdges = 0;
@@ -150,15 +164,19 @@ void LineAnalyze(SLine* pLine)
     float sum = 0.0;
     for(int i = 0; i < POINTS; i++)
     {
-        if(pLine->data[i] > LINE_CENTER_THRESHOLD)
+		float val = (float)pLine->norm[i];
+        if(val >= 0)
         {
             count = 1;
-            sum += pLine->data[i];
-            p += pLine->data[i]*i;
+            sum += val;
+            p += val*i;
         }
     }
     
-    p = p/sum;
+	if(sum > 0.0001)
+	{
+    	p = p/sum;
+	}
     if(count > 0)
     {
         pLine->p0 = p;

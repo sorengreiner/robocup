@@ -5,12 +5,13 @@
 
 
 #define POINTS (8)
-#define LINE_CENTER_THRESHOLD (10.0)
-#define LINE_EDGE_THRESHOLD (10.0)
+#define LINE_EDGE_THRESHOLD (0.1)
+
 
 typedef struct
 {
     uint8_t data[POINTS];
+    float norm[POINTS];
     uint8_t n;
     float p0;
 	uint8_t nLeftEdges;
@@ -22,7 +23,7 @@ typedef struct
 
 void LineInit(SLine* pLine);
 void LinePrint(SLine* pLine);
-void LineAnalyze(SLine* pLine);
+void LineAnalyze(SLine* pLine, float base, float high);
 
 
 

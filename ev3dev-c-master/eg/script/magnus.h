@@ -97,6 +97,7 @@ typedef enum
 typedef struct
 {
 	int index;
+	float dt;		// delta time in s
 	uint8_t stack[256];
 } SState;
 

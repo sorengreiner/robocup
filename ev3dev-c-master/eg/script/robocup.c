@@ -4,6 +4,7 @@
 #include "brick.h"
 #include "ev3_servo.h"
 #include "keys.h"
+#include "pid.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -300,6 +301,7 @@ float LinePosToPhysical(float pos)
 typedef struct
 {
 	float fLastLinePos;
+	SPidr pidr;
 } SFollowState;
 
 
@@ -334,17 +336,24 @@ bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1)
 	{
 		printf("FollowLeft\n");
 		p->fLastLinePos = 0.0f;
+		p->pidr.max = 45;
+		p->pidr.min = -45;
+		p->pidr.Kp = 1;
+		p->pidr.Ki = 0;
+		p->pidr.Kd = 1;
+		p->pidr.error = 0;
+		p->pidr.integral = 0;
 	}
-
-	float fSpeed = GetVar(V_SPEED);
 
 	if(lineSensor.nLeftEdges > 0)
 	{
 		p->fLastLinePos = LinePosToPhysical(lineSensor.leftEdge);
 	}
 	
-	printf("pos:%f\n", p->fLastLinePos);
-	float fAngle = p->fLastLinePos;
+	p->pidr.dt = s->dt;
+	float fAngle = PidCompute(&p->pidr, 0, p->fLastLinePos);
+	float fSpeed = GetVar(V_SPEED);
+	printf("pos:%f angle:%f dt:%f\n", p->fLastLinePos, fAngle, p->pidr.dt);
 	UpdateCar(fSpeed, fAngle);
 
 	return false;

@@ -1,5 +1,5 @@
-#ifndef _PIDR_H_
-#define _PIDR_H_
+#ifndef _PID_H_
+#define _PID_H_
 
 #include <stdint.h>
 #include <stdbool.h>

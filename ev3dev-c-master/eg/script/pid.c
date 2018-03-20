@@ -1,4 +1,4 @@
-#include "pidr.h"
+#include "pid.h"
 
 #include <stdlib.h>
 //#include <math.h>

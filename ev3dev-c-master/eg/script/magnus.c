@@ -916,6 +916,7 @@ void RunProgram(SProgram* pProgram)
 			}
 			
 			UpdateVars(delta/1000.0);
+			s.dt = delta/1000.0;
 			
 			bool bImmidiateReturn = pSequence->pAction(&s, pSequence->noun0, pSequence->value0, pSequence->noun1, pSequence->value1);
 			

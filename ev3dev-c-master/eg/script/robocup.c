@@ -233,12 +233,14 @@ SLine lineSensor;
 
 void UpdateLineSensor(void)
 {
-	uint8_t values[8];
 	int n = get_sensor_bin_data( snLine, lineSensor.data, 8);
 	if(n == 8)
 	{
-		LineAnalyze(&lineSensor);
-//		printf("le: %d %f re: %d %f\n", lineSensor.nLeftEdges, lineSensor.leftEdge, lineSensor.nRightEdges, lineSensor.rightEdge);
+//		uint8_t* p = lineSensor.data;
+//		printf("%d %d %d %d %d %d %d %d\n", p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
+		LineAnalyze(&lineSensor, 30, 50);
+	
+//		printf("%f le: %d %f re: %d %f\n", lineSensor.p0, lineSensor.nLeftEdges, lineSensor.leftEdge, lineSensor.nRightEdges, lineSensor.rightEdge);
 	}
 }
 
@@ -271,7 +273,7 @@ void UpdateGyro(void)
 	if(get_sensor_value0(snGyro, &value) > 0)
 	{
 		inertial.yaw = value;
-		printf("yaw:%f\n", inertial.yaw);
+//		printf("yaw:%f\n", inertial.yaw);
 	}
 }
 
@@ -312,12 +314,13 @@ bool Follow(SState* s, int noun0, float value0, int noun1, float value1)
 
 	float fSpeed = GetVar(V_SPEED);
 
-	if(lineSensor.n > 0)
+//	if(lineSensor.n > 0)
 	{
 		p->fLastLinePos = LinePosToPhysical(lineSensor.p0);
 	}
 
 	float fAngle = p->fLastLinePos;
+	printf("pos:%f\n", p->fLastLinePos);
 	UpdateCar(fSpeed, fAngle);
 
 	return false;
@@ -339,7 +342,8 @@ bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1)
 	{
 		p->fLastLinePos = LinePosToPhysical(lineSensor.leftEdge);
 	}
-
+	
+	printf("pos:%f\n", p->fLastLinePos);
 	float fAngle = p->fLastLinePos;
 	UpdateCar(fSpeed, fAngle);
 

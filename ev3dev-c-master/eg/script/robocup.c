@@ -238,8 +238,8 @@ void UpdateLineSensor(void)
 	if(n == 8)
 	{
 		uint8_t* p = lineSensor.data;
-		printf("%d %d %d %d %d %d %d %d ", p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
-		LineAnalyze(&lineSensor, 30, 50);
+		printf("%d %d %d %d %d %d %d %d\n ", p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
+		LineAnalyze(&lineSensor, 38, 50);
 	
 //		printf("%f le: %d %f re: %d %f\n", lineSensor.p0, lineSensor.nLeftEdges, lineSensor.leftEdge, lineSensor.nRightEdges, lineSensor.rightEdge);
 	}
@@ -338,9 +338,9 @@ bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1)
 		p->fLastLinePos = 0.0f;
 		p->pidr.max = 50;
 		p->pidr.min = -50;
-		p->pidr.Kp = 1.1;
+		p->pidr.Kp = 1.0;
 		p->pidr.Ki = 0.0;
-		p->pidr.Kd = 0.02;
+		p->pidr.Kd = 0.0;
 		p->pidr.error = 0;
 		p->pidr.integral = 0;
 	}
@@ -355,7 +355,7 @@ bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1)
 	float fSpeed = GetVar(V_SPEED);
 
 	printf("pos:%f angle:%f dt:%f lp:%f\n", p->fLastLinePos, fAngle, p->pidr.dt, lineSensor.leftEdge);
-	UpdateCar(fSpeed, -fAngle);
+	UpdateCar(fSpeed, fAngle);
 
 	return false;
 }
@@ -368,11 +368,11 @@ bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1)
 	{
 		printf("FollowRight\n");
 		p->fLastLinePos = 0.0f;
-		p->pidr.max = 45;
-		p->pidr.min = -45;
+		p->pidr.max = 50;
+		p->pidr.min = -50;
 		p->pidr.Kp = 1;
-		p->pidr.Ki = 0;
-		p->pidr.Kd = 1;
+		p->pidr.Ki = 0.0;
+		p->pidr.Kd = 0;
 		p->pidr.error = 0;
 		p->pidr.integral = 0;
 	}
@@ -386,7 +386,7 @@ bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1)
 	float fAngle = PidCompute(&p->pidr, 0, p->fLastLinePos);
 	float fSpeed = GetVar(V_SPEED);
 	printf("pos:%f angle:%f dt:%f\n", p->fLastLinePos, fAngle, p->pidr.dt);
-	UpdateCar(fSpeed, -fAngle);
+	UpdateCar(fSpeed, fAngle);
 
 	return false;
 }

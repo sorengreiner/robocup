@@ -44,8 +44,8 @@ typedef struct
 } SInertialNavigation;
 
 
-int leftCenter = -4;
-int rightCenter = 0;
+int leftCenter = -8;
+int rightCenter = 2;
 SCar car;
 SInertialNavigation inertial;
 float fGyroDrift = 0.083;
@@ -237,8 +237,8 @@ void UpdateLineSensor(void)
 	int n = get_sensor_bin_data( snLine, lineSensor.data, 8);
 	if(n == 8)
 	{
-//		uint8_t* p = lineSensor.data;
-//		printf("%d %d %d %d %d %d %d %d\n", p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
+		uint8_t* p = lineSensor.data;
+		printf("%d %d %d %d %d %d %d %d ", p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
 		LineAnalyze(&lineSensor, 30, 50);
 	
 //		printf("%f le: %d %f re: %d %f\n", lineSensor.p0, lineSensor.nLeftEdges, lineSensor.leftEdge, lineSensor.nRightEdges, lineSensor.rightEdge);
@@ -336,11 +336,11 @@ bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1)
 	{
 		printf("FollowLeft\n");
 		p->fLastLinePos = 0.0f;
-		p->pidr.max = 45;
-		p->pidr.min = -45;
-		p->pidr.Kp = 1;
-		p->pidr.Ki = 0;
-		p->pidr.Kd = 1;
+		p->pidr.max = 50;
+		p->pidr.min = -50;
+		p->pidr.Kp = 1.1;
+		p->pidr.Ki = 0.0;
+		p->pidr.Kd = 0.02;
 		p->pidr.error = 0;
 		p->pidr.integral = 0;
 	}
@@ -353,8 +353,8 @@ bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1)
 	p->pidr.dt = s->dt;
 	float fAngle = PidCompute(&p->pidr, 0, p->fLastLinePos);
 	float fSpeed = GetVar(V_SPEED);
-	printf("pos:%f angle:%f dt:%f\n", p->fLastLinePos, fAngle, p->pidr.dt);
-	UpdateCar(fSpeed, fAngle);
+	printf("pos:%f angle:%f dt:%f lp:%f\n", p->fLastLinePos, fAngle, p->pidr.dt, lineSensor.leftEdge);
+	UpdateCar(fSpeed, -fAngle);
 
 	return false;
 }

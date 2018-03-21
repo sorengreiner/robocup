@@ -6,6 +6,7 @@
 
 #define POINTS (8)
 #define LINE_EDGE_THRESHOLD (0.1)
+#define LINE_WIDTH (0.82)
 
 
 typedef struct

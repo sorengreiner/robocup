@@ -263,24 +263,82 @@ uint8_t g_data[] =
 27,28,31,34,38,39,47,54,
 27,28,31,34,38,39,47,54,
 27,28,31,34,38,39,47,54,
-27,29,31,34,38,40,48,53
-
+27,29,31,34,38,40,48,53,
+31,34,36,41,46,45,51,60,
+32,34,36,40,45,44,51,56
 };
+
+
+#define LINESENSOR_WIDTH_MM (46.0)
+
+float LinePosToPhysical(float pos)
+{
+	return (LINESENSOR_WIDTH_MM*pos - LINESENSOR_WIDTH_MM/2);
+}
+
 
 
 int main(int argc, char* argv[])
 {
-    uint32_t nLines = sizeof(g_data)/8;
-    for(uint32_t i = 0; i < nLines; i++)
-    {
-        SLine line;
-        memcpy(line.data, g_data + 8*i, 8);
-        
-        LineAnalyze(&line, 30, 50);
-        LinePrint(&line);
-		printf("\n");
-    }
-    
+	if(argc == 2)
+	{
+		FILE* file = fopen(argv[1], "r");
+		if(!file)
+		{
+			printf("File not found\n");
+		}
+	    char line[256];
+	
+	    while (fgets(line, sizeof(line), file)) 
+		{
+			int data[8];
+			if(sscanf(line, "%d %d %d %d %d %d %d %d", data,data+1,data+2,data+3,data+4,data+5,data+6,data+7) == 8)
+			{
+		        SLine line;
+				for(int i = 0; i < 8; i++)
+				{
+					line.data[i] = data[i];
+				}
+		        
+		        LineAnalyze(&line, 30, 50);
+		        LinePrint(&line);
+				if(line.nLeftEdges > 0)
+				{
+					printf(" %7.2f", LinePosToPhysical(line.leftEdge));
+				}
+				else
+				{
+					printf("       ");
+				}
 
+				if(line.nRightEdges > 0)
+				{
+					printf(" %7.2f", LinePosToPhysical(line.rightEdge));
+				}
+				else
+				{
+					printf("       ");
+				}
+				printf("\n");
+			}
+	    }
+	
+	    fclose(file);
+	}
+	else
+	{
+	    uint32_t nLines = sizeof(g_data)/8;
+	    for(uint32_t i = 0; i < nLines; i++)
+	    {
+	        SLine line;
+	        memcpy(line.data, g_data + 8*i, 8);
+	        
+	        LineAnalyze(&line, 30, 50);
+	        LinePrint(&line);
+			printf("");
+			printf("\n");
+	    }
+    }
+	
     return 0;
 }

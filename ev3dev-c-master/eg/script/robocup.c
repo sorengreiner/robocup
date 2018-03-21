@@ -294,7 +294,7 @@ bool Line(SState* s, int noun0, float value0, int noun1, float value1)
 
 float LinePosToPhysical(float pos)
 {
-	return -(LINESENSOR_WIDTH_MM*pos/POINTS - LINESENSOR_WIDTH_MM/2);
+	return (LINESENSOR_WIDTH_MM*pos - LINESENSOR_WIDTH_MM/2);
 }
 
 
@@ -354,7 +354,7 @@ bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1)
 	float fAngle = PidCompute(&p->pidr, 0, p->fLastLinePos);
 	float fSpeed = GetVar(V_SPEED);
 	printf("pos:%f angle:%f dt:%f\n", p->fLastLinePos, fAngle, p->pidr.dt);
-	UpdateCar(fSpeed, fAngle);
+	UpdateCar(fSpeed, -fAngle);
 
 	return false;
 }
@@ -367,17 +367,25 @@ bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1)
 	{
 		printf("FollowRight\n");
 		p->fLastLinePos = 0.0f;
+		p->pidr.max = 45;
+		p->pidr.min = -45;
+		p->pidr.Kp = 1;
+		p->pidr.Ki = 0;
+		p->pidr.Kd = 1;
+		p->pidr.error = 0;
+		p->pidr.integral = 0;
 	}
-
-	float fSpeed = GetVar(V_SPEED);
 
 	if(lineSensor.nRightEdges > 0)
 	{
 		p->fLastLinePos = LinePosToPhysical(lineSensor.rightEdge);
 	}
-
-	float fAngle = p->fLastLinePos;
-	UpdateCar(fSpeed, fAngle);
+	
+	p->pidr.dt = s->dt;
+	float fAngle = PidCompute(&p->pidr, 0, p->fLastLinePos);
+	float fSpeed = GetVar(V_SPEED);
+	printf("pos:%f angle:%f dt:%f\n", p->fLastLinePos, fAngle, p->pidr.dt);
+	UpdateCar(fSpeed, -fAngle);
 
 	return false;
 }

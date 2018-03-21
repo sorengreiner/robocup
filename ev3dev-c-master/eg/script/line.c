@@ -19,13 +19,21 @@ void LineInit(SLine* pLine)
 
 void LinePrint(SLine* pLine)
 {
+
     printf("in{");
     for(int i = 0; i < POINTS; i++)
     {
         printf("%3d ", pLine->data[i]);
     }
     printf("}");
-
+/*
+    printf("norm{");
+    for(int i = 0; i < POINTS; i++)
+    {
+        printf("%4.2f ", pLine->norm[i]);
+    }
+    printf("}");
+*/
     printf("l%d:%2.3f c:%2.3f r%d:%2.3f", pLine->nLeftEdges, pLine->leftEdge, pLine->p0, pLine->nRightEdges, pLine->rightEdge);
 }
 
@@ -40,6 +48,59 @@ float WeightedAverage(float* derivative, int i, int n)
 	float w = (a*(i-1) + b*i + c*(i+1))/sum;
 	return w;
 }
+
+void SearchLeftEdges2(SLine* pLine)
+{
+	// Search for crossings
+	float threshold = 0.66;
+
+	if(pLine->norm[0] < threshold)
+	{
+		for(int i = 0; i < POINTS - 1; i++)
+		{
+			float y0 = pLine->norm[i];
+			float y1 = pLine->norm[i + 1];
+	
+			if((y0 < threshold) && (y1 >= threshold))
+			{
+				// crossing found. Compute the weighted x pos
+				float x = (threshold-y0)/(y1-y0);
+
+				pLine->nLeftEdges = 1;
+				pLine->leftEdge = (x + i)/(POINTS-1);
+				break;
+			}
+		}
+	}
+}
+
+
+void SearchRightEdges2(SLine* pLine)
+{
+	// Search for crossings
+	float threshold = 0.66;
+
+	if(pLine->norm[POINTS - 1] < threshold)
+	{
+		for(int i = POINTS - 1; i > 0; i--)
+		{
+			float y0 = pLine->norm[i];
+			float y1 = pLine->norm[i - 1];
+	
+			if((y0 < threshold) && (y1 >= threshold))
+			{
+				// crossing found. Compute the weighted x pos
+				float x = (threshold-y0)/(y1-y0);
+
+				pLine->nRightEdges = 1;
+				pLine->rightEdge = (i - x)/(POINTS-1);
+				break;
+			}
+		}
+	}
+}
+
+
 
 
 void SearchLeftEdges(SLine* pLine)
@@ -179,10 +240,21 @@ void LineAnalyze(SLine* pLine, float base, float high)
 	}
     if(count > 0)
     {
-        pLine->p0 = p;
+        pLine->p0 = p/(POINTS-1);
     }
     pLine->n = count;
 
-	SearchLeftEdges(pLine);
-	SearchRightEdges(pLine);
+	SearchLeftEdges2(pLine);
+	SearchRightEdges2(pLine);
+
+	if(pLine->nLeftEdges && !pLine->nRightEdges)
+	{
+		pLine->rightEdge = pLine->leftEdge + LINE_WIDTH;
+		pLine->nRightEdges = 1;
+	}
+	else if(!pLine->nLeftEdges && pLine->nRightEdges)
+	{
+		pLine->leftEdge = pLine->rightEdge - LINE_WIDTH;
+		pLine->nLeftEdges = 1;
+	}
 }

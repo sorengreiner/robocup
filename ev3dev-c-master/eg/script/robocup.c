@@ -239,7 +239,7 @@ int PositionToToolSp(float position)
 		position = 1.0;
 	}
 
-	int sp = (int)(-position*120);
+	int sp = (int)(-position*380);
 	return sp;
 }
 
@@ -772,7 +772,7 @@ int main(int argc, char* argv[])
 	tacho_run_forever( MOTOR_BOTH );
 	set_servo_command_inx(snLeft, SERVO_FLOAT);
 	set_servo_command_inx(snRight, SERVO_FLOAT);	
-
+	tacho_reset(MOTOR_TOOL);
 	KeysClose();
 
 	brick_uninit();	

@@ -277,61 +277,6 @@ float LinePosToPhysical(float pos)
 }
 
 
-void LineDataPrint(SLine* pLine)
-{
-    printf("");
-    for(int i = 0; i < POINTS; i++)
-    {
-        printf("%3d  ", pLine->data[i]);
-    }
-    printf(" ");
-    
-    char view[3*POINTS*5 + 2];
-    view[3*POINTS*5 + 1] = 0;
-    memset(view, '.', sizeof(view) - 1);
-    memset(view + POINTS*5, '-', POINTS*5 - 1);
-
-    if(pLine->nLeftEdges > 0)
-    {
-        int index = pLine->leftEdge*POINTS*5 + POINTS*5;
-        if(index >= 0 && index < 3*POINTS*5 + 2)
-        {
-            view[index] = 'L';
-        }
-    }
-
-    if(pLine->nRightEdges > 0)
-    {
-        int index = pLine->rightEdge*POINTS*5 + POINTS*5;
-        if(index >= 0 && index < 3*POINTS*5 + 2)
-        {
-            view[index] = 'R';
-        }
-    }
-
-    if(pLine->n > 0)
-    {
-        int index = pLine->p0*POINTS*5 + POINTS*5;
-        if(index >= 0 && index < 3*POINTS*5 + 2)
-        {
-            view[index] = 'C';
-        }
-    }
-    
-    printf("%s\n", view);
-    
-}
-
-/*
-    uint8_t data[POINTS];
-    float norm[POINTS];
-    uint8_t n;
-    float p0;
-	uint8_t nLeftEdges;
-	float leftEdge;
-*/
-
-
 int main(int argc, char* argv[])
 {
 	if(argc == 2)

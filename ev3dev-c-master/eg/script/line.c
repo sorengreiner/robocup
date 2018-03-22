@@ -37,6 +37,53 @@ void LinePrint(SLine* pLine)
     printf("l%d:%2.3f c:%2.3f r%d:%2.3f", pLine->nLeftEdges, pLine->leftEdge, pLine->p0, pLine->nRightEdges, pLine->rightEdge);
 }
 
+void LineDataPrint(SLine* pLine)
+{
+    printf("");
+    for(int i = 0; i < POINTS; i++)
+    {
+        printf("%3d  ", pLine->data[i]);
+    }
+    printf(" ");
+    
+    char view[3*POINTS*5 + 2];
+    view[3*POINTS*5 + 1] = 0;
+    memset(view, '.', sizeof(view) - 1);
+    memset(view + POINTS*5, '-', POINTS*5 - 1);
+
+    if(pLine->nLeftEdges > 0)
+    {
+        int index = pLine->leftEdge*POINTS*5 + POINTS*5;
+        if(index >= 0 && index < 3*POINTS*5 + 2)
+        {
+            view[index] = 'L';
+        }
+    }
+
+    if(pLine->nRightEdges > 0)
+    {
+        int index = pLine->rightEdge*POINTS*5 + POINTS*5;
+        if(index >= 0 && index < 3*POINTS*5 + 2)
+        {
+            view[index] = 'R';
+        }
+    }
+
+    if(pLine->n > 0)
+    {
+        int index = pLine->p0*POINTS*5 + POINTS*5;
+        if(index >= 0 && index < 3*POINTS*5 + 2)
+        {
+            view[index] = 'C';
+        }
+    }
+    
+    printf("%s\n", view);
+    
+}
+
+
+
 // Compute w3 point weighted average around pos
 float WeightedAverage(float* derivative, int i, int n)
 {

@@ -24,6 +24,7 @@ typedef struct
 
 void LineInit(SLine* pLine);
 void LinePrint(SLine* pLine);
+void LineDataPrint(SLine* pLine);
 void LineAnalyze(SLine* pLine, float base, float high);
 
 

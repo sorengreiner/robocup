@@ -39,7 +39,6 @@ void LinePrint(SLine* pLine)
 
 void LineDataPrint(SLine* pLine)
 {
-    printf("");
     for(int i = 0; i < POINTS; i++)
     {
         printf("%3d  ", pLine->data[i]);

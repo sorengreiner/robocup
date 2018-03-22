@@ -17,10 +17,12 @@
 
 #define MOTOR_LEFT     OUTC
 #define MOTOR_RIGHT    OUTB
+#define MOTOR_TOOL     OUTD
 #define MOTOR_BOTH     ( MOTOR_LEFT | MOTOR_RIGHT )
 #define IR_CHANNEL     0 
 
 int max_speed;         /* Motor maximal speed (will be detected) */ 
+int max_speed_tool;         /* Motor maximal speed (will be detected) */ 
 POOL_T ir;             /* IR sensor port (will be detected) */
 POOL_T rc;
 uint8_t snRight;
@@ -48,7 +50,6 @@ int leftCenter = -8;
 int rightCenter = 2;
 SCar car;
 SInertialNavigation inertial;
-float fGyroDrift = 0.083;
 
 void UpdateGyro();
 
@@ -132,19 +133,17 @@ bool RobocupInit( void )
 	} 
 	printf("%s Detecting motors at B and C\n", bDetectMotors ? "[  OK  ]" : "[FAILED]");
 
-	ev3_servo_init();
-/*
-	int i;       
-	for ( i = 0; i < DESC_LIMIT; i++ ) 
+	// Detect motor for tool
+	bool bDetectTool = false;
+	if ( tacho_is_plugged( MOTOR_TOOL, TACHO_TYPE__NONE_ )) 
 	{
-		if ( ev3_servo[ i ].type_inx != SERVO_TYPE__NONE_ ) 
-		{
-			printf( "  type = %s\n", ev3_servo_type( ev3_servo[ i ].type_inx ));
-			printf( "  port = %s\n", ev3_servo_port_name( i, s ));
-			bServos = true;
-		}
-	}
-*/
+		bDetectTool = true;
+		max_speed_tool = tacho_get_max_speed( MOTOR_TOOL, 0 );
+		tacho_reset( MOTOR_TOOL );
+	} 
+	printf("%s Detecting tool motor at D\n", bDetectTool ? "[  OK  ]" : "[FAILED]");
+
+	ev3_servo_init();
 
 	// Detect servo for front right wheel
 	bool bDetectServoRight = false;
@@ -229,6 +228,31 @@ void UpdateCar(float speed, float angle)
 }
 
 
+int PositionToToolSp(float position)
+{
+	if(position < 0)
+	{
+		position = 0;
+	}
+	if(position > 1.0)
+	{
+		position = 1.0;
+	}
+
+	int sp = (int)(-position*120);
+	return sp;
+}
+
+
+void UpdateTool(float speed, float position)
+{
+	int motorSetpoint = PositionToToolSp(position); 
+	tacho_set_speed_sp( MOTOR_TOOL, speed );
+	tacho_set_position_sp(MOTOR_TOOL, motorSetpoint);
+	tacho_run_to_abs_pos( MOTOR_TOOL ); 		
+}
+
+
 SLine lineSensor;
 
 
@@ -238,9 +262,9 @@ void UpdateLineSensor(void)
 	if(n == 8)
 	{
 		uint8_t* p = lineSensor.data;
-		printf("%d %d %d %d %d %d %d %d\n ", p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
-		LineAnalyze(&lineSensor, 38, 50);
-	
+//		printf("%d %d %d %d %d %d %d %d\n ", p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
+		LineAnalyze(&lineSensor, GetVar(V_BLACK), GetVar(V_WHITE));
+		LineDataPrint(&lineSensor);	
 //		printf("%f le: %d %f re: %d %f\n", lineSensor.p0, lineSensor.nLeftEdges, lineSensor.leftEdge, lineSensor.nRightEdges, lineSensor.rightEdge);
 	}
 }
@@ -265,8 +289,6 @@ void InertialNavigationInit(void)
 }
 
 
-const float fGyroRateUnit = 0.00875*90/85;
-
 void UpdateGyro(void)
 {
 	float value;
@@ -289,6 +311,11 @@ bool Line(SState* s, int noun0, float value0, int noun1, float value1)
 	return (lineSensor.nLeftEdges > 0) || (lineSensor.nRightEdges > 0);
 }
 
+bool NoLine(SState* s, int noun0, float value0, int noun1, float value1)
+{
+	return (lineSensor.nLeftEdges == 0) && (lineSensor.nRightEdges == 0);
+}
+
 
 #define LINESENSOR_WIDTH_MM (46.0)
 
@@ -301,94 +328,114 @@ float LinePosToPhysical(float pos)
 typedef struct
 {
 	float fLastLinePos;
+	float fTarget;
 	SPidr pidr;
 } SFollowState;
 
+typedef enum
+{
+	TARGETMODE_LEFTLINE = 0,
+	TARGETMODE_RIGHTLINE,
+	TARGETMODE_CENTER,
+	TARGETMODE_HEADING,
+} ETargetMode;
 
-bool Follow(SState* s, int noun0, float value0, int noun1, float value1) 
+
+bool FollowTarget(SState* s, ETargetMode eTargetMode) 
 { 
 	SFollowState* p = (SFollowState*)s->stack;
 	if(s->index == 0)
 	{
-		printf("Follow\n");
 		p->fLastLinePos = 0.0f;
+		p->pidr.max = 50;
+		p->pidr.min = -50;
+		p->pidr.Kp = GetVar(V_KP);
+		p->pidr.Ki = GetVar(V_KI);
+		p->pidr.Kd = GetVar(V_KD);
+		p->pidr.error = 0;
+		p->pidr.integral = 0;
 	}
 
-	float fSpeed = GetVar(V_SPEED);
-
-//	if(lineSensor.n > 0)
+	// Get current target
+	float fTarget = 0.0; // Center of line sensor is the target
+	float pos = 0.0;
+	switch(eTargetMode)
 	{
-		p->fLastLinePos = LinePosToPhysical(lineSensor.p0);
+	case TARGETMODE_LEFTLINE: 
+		if(lineSensor.nLeftEdges > 0)
+		{
+			p->fLastLinePos = LinePosToPhysical(lineSensor.leftEdge);
+		}
+		pos = p->fLastLinePos;
+		fTarget = 0.0;
+		break;
+	case TARGETMODE_RIGHTLINE: 
+		if(lineSensor.nRightEdges > 0)
+		{
+			p->fLastLinePos = LinePosToPhysical(lineSensor.rightEdge);
+		}
+		pos = p->fLastLinePos;
+		fTarget = 0.0;
+		break;
+	case TARGETMODE_CENTER: 
+		if(lineSensor.n > 0)
+		{
+			p->fLastLinePos = LinePosToPhysical(lineSensor.p0);
+		}
+		pos = p->fLastLinePos;
+		fTarget = 0.0;
+		break;
+	case TARGETMODE_HEADING: 
+		break;
+	default: break;
 	}
-
-	float fAngle = p->fLastLinePos;
-	printf("pos:%f\n", p->fLastLinePos);
+	
+	p->pidr.dt = s->dt;
+	float fAngle = PidCompute(&p->pidr, fTarget, pos);
+	float fSpeed = GetVar(V_SPEED);
 	UpdateCar(fSpeed, fAngle);
 
 	return false;
+}
+
+
+
+bool Follow(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
+	return FollowTarget(s, TARGETMODE_CENTER);
 }
 
 
 bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1) 
 { 
-	SFollowState* p = (SFollowState*)s->stack;
-	if(s->index == 0)
-	{
-		printf("FollowLeft\n");
-		p->fLastLinePos = 0.0f;
-		p->pidr.max = 50;
-		p->pidr.min = -50;
-		p->pidr.Kp = 1.0;
-		p->pidr.Ki = 0.0;
-		p->pidr.Kd = 0.0;
-		p->pidr.error = 0;
-		p->pidr.integral = 0;
-	}
-
-	if(lineSensor.nLeftEdges > 0)
-	{
-		p->fLastLinePos = LinePosToPhysical(lineSensor.leftEdge);
-	}
-	
-	p->pidr.dt = s->dt;
-	float fAngle = PidCompute(&p->pidr, 0, p->fLastLinePos);
-	float fSpeed = GetVar(V_SPEED);
-
-	printf("pos:%f angle:%f dt:%f lp:%f\n", p->fLastLinePos, fAngle, p->pidr.dt, lineSensor.leftEdge);
-	UpdateCar(fSpeed, fAngle);
-
-	return false;
+	return FollowTarget(s, TARGETMODE_LEFTLINE);
 }
 
 
 bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1) 
 { 
-	SFollowState* p = (SFollowState*)s->stack;
+	return FollowTarget(s, TARGETMODE_RIGHTLINE);
+}
+
+
+bool Stop(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
 	if(s->index == 0)
 	{
-		printf("FollowRight\n");
-		p->fLastLinePos = 0.0f;
-		p->pidr.max = 50;
-		p->pidr.min = -50;
-		p->pidr.Kp = 1;
-		p->pidr.Ki = 0.0;
-		p->pidr.Kd = 0;
-		p->pidr.error = 0;
-		p->pidr.integral = 0;
+		UpdateCar(0, 0);
 	}
+	return true;
+}
 
-	if(lineSensor.nRightEdges > 0)
+
+bool Tool(SState* s, int noun0, float value0, int noun1, float value1)
+{
+	if(s->index == 0)
 	{
-		p->fLastLinePos = LinePosToPhysical(lineSensor.rightEdge);
+		float fToolPos = GetVar(V_TOOLPOS);
+		UpdateTool(100, fToolPos);
 	}
-	
-	p->pidr.dt = s->dt;
-	float fAngle = PidCompute(&p->pidr, 0, p->fLastLinePos);
-	float fSpeed = GetVar(V_SPEED);
-	printf("pos:%f angle:%f dt:%f\n", p->fLastLinePos, fAngle, p->pidr.dt);
-	UpdateCar(fSpeed, fAngle);
-
-	return false;
+	return true;
 }
 
 
@@ -396,7 +443,6 @@ bool Forward(SState* s, int noun0, float value0, int noun1, float value1)
 { 
 	if(s->index == 0)
 	{
-		printf("Forward\n");
 		float fSpeed = GetVar(V_SPEED);
 		float fSteer = GetVar(V_STEER);
 		UpdateCar(fSpeed, fSteer);
@@ -410,7 +456,6 @@ bool Backward(SState* s, int noun0, float value0, int noun1, float value1)
 { 
 	if(s->index == 0)
 	{
-		printf("Backward\n");
 		float fSpeed = GetVar(V_SPEED);
 		float fSteer = GetVar(V_STEER);
 		UpdateCar(-fSpeed, fSteer);
@@ -435,7 +480,6 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 
 	if(s->index == 0)
 	{
-		printf("TurnLeft\n");
 		// Ignore V_STEER while we are turning, but use V_SPEED
 		p->fHeading = GetVar(V_HEADING);
 		float fSpeed = GetVar(V_SPEED);
@@ -505,7 +549,6 @@ bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 
 	if(s->index == 0)
 	{
-		printf("TurnRight\n");
 		// Ignore V_STEER while we are turning, but use V_SPEED
 		p->fHeading = GetVar(V_HEADING);
 		float fSpeed = GetVar(V_SPEED);
@@ -623,6 +666,8 @@ void AssignVar(int noun, float value)
 	switch(noun)
 	{
 	case V_NIL:
+	case V_TRUE:
+	case V_FALSE:
 		break;
 	case V_SPEED:
 		SetVar(noun, value);

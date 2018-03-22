@@ -17,6 +17,7 @@
 #else
 #include <unistd.h> // for usleep
 #endif
+
 /*
 void sleep_ms(int milliseconds) // cross-platform sleep function
 {
@@ -132,9 +133,11 @@ SActionItem g_Actions[NUM_ACTIONS] =
 	{"FOLLOWRIGHT", 	FollowRight},
 	{"FORWARD", 		Forward},
 	{"SET", 			Set},
+	{"STOP", 			Stop},
 	{"TURNLEFT", 		TurnLeft},
 	{"TURNRIGHT", 		TurnRight},
 	{"WAIT", 			Wait},
+	{"TOOL", 			Tool},
 };
 
 
@@ -167,7 +170,8 @@ SCondItem g_Conditions[NUM_COND] =
 	{"BRANCHRIGHT", 	BranchRight},
 	{"JUNCTIONLEFT", 	JunctionLeft},
 	{"JUNCTIONRIGHT", 	JunctionRight},
-	{"LINE", 			Line}
+	{"LINE", 			Line},
+	{"NOLINE", 			NoLine},
 };
 
 ECond MatchCondition(const char* token)
@@ -201,6 +205,8 @@ SOpItem g_Operators[NUM_OP] =
 	{">", 				Greater},
 	{"<=", 				LessEqual},
 	{"<", 				Less},
+	{"!~", 				ApproximateNotEqual},
+	{"~", 				Approximate},
 };
 
 EOp MatchOperator(const char* token)
@@ -252,6 +258,8 @@ EBooleanOperator MatchBooleanOperator(const char* token)
 SVarItem g_Vars[NUM_VARS] =
 {
 	{"NIL",			0.0 },
+	{"TRUE",		1.0 },
+	{"FALSE",		0.0 },
 	{"SPEED",		0.0 },
 	{"ODOMETER",	0.0 },
 	{"LODOMETER",	0.0 },
@@ -264,7 +272,13 @@ SVarItem g_Vars[NUM_VARS] =
 	{"HEADING",		0.0 },
 	{"XPOS",		0.0 },
 	{"YPOS",		0.0 },
-	{"STEER",		0.0 }
+	{"STEER",		0.0 },
+	{"KP",			1.0 },
+	{"KI",			0.0 },
+	{"KD",			0.0 },
+	{"WHITE",		50.0 },
+	{"BLACK",		30.0 },
+	{"TOOLPOS",		 0.0 }
 };
 
 
@@ -421,7 +435,6 @@ void SequencePrint(SSequence* pSequence)
 	PrintValue(pSequence->right_noun1, pSequence->right_value1);
 	printf("\n");
 }
-
 
 
 bool ParseLine(char* in, SSequence* pItem)
@@ -758,7 +771,6 @@ bool Set(SState* s, int noun0, float value0, int noun1, float value1)
 { 
 	if(s->index == 0)
 	{
-		printf("Set\n");
 	}
 	return true;
 }
@@ -768,7 +780,6 @@ bool Wait(SState* s, int noun0, float value0, int noun1, float value1)
 { 
 	if(s->index == 0)
 	{
-		printf("Wait\n");
 	}
 	return false;
 }
@@ -790,6 +801,44 @@ bool Equal(SState* s, int noun0, float value0, int noun1, float value1)
 	}
 
 	return left == right; 
+}
+
+
+bool Approximate(SState* s, int noun0, float value0, int noun1, float value1)
+{ 
+	float left = value0;
+	float right = value1;
+
+	if(noun0 < NUM_VARS && noun0 != V_NIL)
+	{
+		left = g_Vars[noun0].value;
+	}
+
+	if(noun1 < NUM_VARS && noun1 != V_NIL)
+	{
+		right = g_Vars[noun1].value;
+	}
+
+	return fabs(left - right) < 0.1; 
+}
+
+
+bool ApproximateNotEqual(SState* s, int noun0, float value0, int noun1, float value1)
+{ 
+	float left = value0;
+	float right = value1;
+
+	if(noun0 < NUM_VARS && noun0 != V_NIL)
+	{
+		left = g_Vars[noun0].value;
+	}
+
+	if(noun1 < NUM_VARS && noun1 != V_NIL)
+	{
+		right = g_Vars[noun1].value;
+	}
+
+	return fabs(left - right) > 0.1; 
 }
 
 
@@ -911,6 +960,7 @@ void RunProgram(SProgram* pProgram)
 		{
 			if(s.index == 0)
 			{
+				SequencePrint(pSequence);
 				AssignVar(pSequence->noun0, pSequence->value0);
 				AssignVar(pSequence->noun1, pSequence->value1);
 			}

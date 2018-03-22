@@ -16,6 +16,8 @@ typedef enum
 typedef enum
 {
 	V_NIL = 0,
+	V_TRUE,		// TRUE has value 1
+	V_FALSE,	// FALSE has value 0
 	V_SPEED,	// Speed of car in cm/s
 	V_ODOMETER,	// Odometer in m
 	V_LODOMETER,// Odometer in m of left back wheel
@@ -29,6 +31,12 @@ typedef enum
 	V_XPOS,		// X position as eastward value relative to starting point
 	V_YPOS,		// Y position as eastward value relative to starting point
 	V_STEER,	// Steering angle of front wheels
+	V_KP,		// PID controller Kp constant
+	V_KI,		// PID controller Ki constant
+	V_KD,		// PID controller Kd constant
+	V_WHITE,	// Linesensor white level
+	V_BLACK,	// Linesensor black level
+	V_TOOLPOS,	// Tool position [0 to 1]
 	NUM_VARS
 } EVar;
 
@@ -48,9 +56,11 @@ typedef enum
     A_FOLLOWRIGHT,
     A_FORWARD,
     A_SET,
+    A_STOP,
     A_TURNLEFT,
     A_TURNRIGHT,
     A_WAIT,
+	A_TOOL,
 	NUM_ACTIONS
 } EAction;
 
@@ -61,6 +71,7 @@ typedef enum
 	C_JUNCTIONLEFT,
 	C_JUNCTIONRIGHT,
 	C_LINE,
+	C_NOLINE,
 	NUM_COND
 } ECond;
 
@@ -72,6 +83,8 @@ typedef enum
 	O_GREATER,
 	O_LESS_EQUAL,
 	O_LESS,
+	O_APPROXIMATE,
+	O_APPROXIMATE_NOT_EQUAL,
 	NUM_OP
 } EOp;
 
@@ -159,12 +172,15 @@ bool BranchRight(SState* s, int noun0, float value0, int noun1, float value1);
 bool JunctionLeft(SState* s, int noun0, float value0, int noun1, float value1);
 bool JunctionRight(SState* s, int noun0, float value0, int noun1, float value1);
 bool Line(SState* s, int noun0, float value0, int noun1, float value1);
+bool NoLine(SState* s, int noun0, float value0, int noun1, float value1);
 bool Equal(SState* s, int noun0, float value0, int noun1, float value1);
 bool NotEqual(SState* s, int noun0, float value0, int noun1, float value1);
 bool Greater(SState* s, int noun0, float value0, int noun1, float value1);
 bool GreaterEqual(SState* s, int noun0, float value0, int noun1, float value1);
 bool Less(SState* s, int noun0, float value0, int noun1, float value1);
 bool LessEqual(SState* s, int noun0, float value0, int noun1, float value1);
+bool Approximate(SState* s, int noun0, float value0, int noun1, float value1);
+bool ApproximateNotEqual(SState* s, int noun0, float value0, int noun1, float value1);
 
 
 // Action functions
@@ -175,9 +191,11 @@ bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1);
 bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1);
 bool Forward(SState* s, int noun0, float value0, int noun1, float value1);
 bool Set(SState* s, int noun0, float value0, int noun1, float value1);
+bool Stop(SState* s, int noun0, float value0, int noun1, float value1);
 bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1);
 bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1);
 bool Wait(SState* s, int noun0, float value0, int noun1, float value1);
+bool Tool(SState* s, int noun0, float value0, int noun1, float value1);
 
 
 typedef struct

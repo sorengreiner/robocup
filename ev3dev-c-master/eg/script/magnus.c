@@ -72,6 +72,11 @@ void SequenceInit(SSequence* pSequence)
 }
 
 
+//-----------------------------------------------------------------------------
+// Keywords
+//-----------------------------------------------------------------------------
+
+
 typedef struct 
 {
 	const char* name;
@@ -83,7 +88,6 @@ SKeywordItem g_Keywords[NUM_KEYWORDS] =
 	{"const"},
 	{"#"}
 };
-
 
 EKeyword MatchKeyword(const char* token)
 {
@@ -122,7 +126,6 @@ SActionItem g_Actions[NUM_ACTIONS] =
 	{"wait", 			Wait},
 	{"tool", 			Tool},
 };
-
 
 EAction MatchAction(const char* token)
 {
@@ -290,6 +293,7 @@ EVar MatchVar(const char* token)
 	}
 	return NUM_VARS;
 }
+
 
 EVar MatchKeyValue(const char* token, float* pValue)
 {
@@ -826,6 +830,7 @@ bool Compile(char* in, SProgram* pProgram)
 	return true;
 }
 
+#define PROGRAM_UPDATE_RATE (30)
 
 void RunProgram(SProgram* pProgram)
 {
@@ -839,6 +844,7 @@ void RunProgram(SProgram* pProgram)
 		uint64_t t1 = t0;
 		t0 = TimeMilliseconds();
 		float delta = (t0 - t1);
+        printf("dt:%f\n", delta);
 		
 		bool bProceed = false;
 		if(pSequence->pAction)
@@ -905,7 +911,19 @@ void RunProgram(SProgram* pProgram)
 		    s.index = 0;
 		}
 		
-		sleep_ms(2);
+    	uint64_t tend = TimeMilliseconds();
+        int tdiff = (int)(tend - t0);
+        if(tdiff < PROGRAM_UPDATE_RATE)
+        {
+            // throttle the update period
+            int remain = PROGRAM_UPDATE_RATE - tdiff;
+            sleep_ms(remain);
+        }
+        else
+        {
+            // sleep anyway to allow rest of system to get a time slice
+            sleep_ms(2);
+        }
     }
 }
 

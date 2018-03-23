@@ -45,7 +45,7 @@ void UpdateLineSensor(void)
 {
     uint8_t data[8] = {40,40,60,100,100,100,60,40};
     memcpy(lineSensor.data, data, 8);
-    LineAnalyze(&lineSensor, GetVar(V_BLACK), GetVar(V_WHITE));
+    LineAnalyze(&lineSensor, GetVar(V_BLACK), GetVar(V_WHITE), 0.66f);
 //    LineDataPrint(&lineSensor);	
 }
 

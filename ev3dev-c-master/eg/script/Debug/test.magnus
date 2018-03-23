@@ -1,4 +1,4 @@
-follow speed=10 time=3 until speed > 4 and time > 8
-follow speed=10 time=3 until 4 < speed and time > 8
-
- 
+set time=0
+wait until time ~ 3
+tool toolpos=1
+stop

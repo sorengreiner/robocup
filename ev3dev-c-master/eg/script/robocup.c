@@ -292,7 +292,7 @@ void UpdateLineSensor(void)
 	if(n == 8)
 	{
 		uint8_t* p = lineSensor.data;
-		LineAnalyze(&lineSensor, GetVar(V_BLACK), GetVar(V_WHITE));
+		LineAnalyze(&lineSensor, GetVar(V_BLACK), GetVar(V_WHITE), 0.66f);
 		LineDataPrint(&lineSensor);	
 	}
 }

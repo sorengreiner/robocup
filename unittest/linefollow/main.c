@@ -299,7 +299,7 @@ int main(int argc, char* argv[])
 					line.data[i] = data[i];
 				}
 		        
-		        LineAnalyze(&line, 30, 50);
+		        LineAnalyze(&line, 30, 50, 0.66);
 //		        LinePrint(&line);
                 LineDataPrint(&line);
 			}
@@ -315,7 +315,7 @@ int main(int argc, char* argv[])
 	        SLine line;
 	        memcpy(line.data, g_data + 8*i, 8);
 	        
-	        LineAnalyze(&line, 30, 50);
+	        LineAnalyze(&line, 30, 50, 0.66);
 	        LinePrint(&line);
 			printf("");
 			printf("\n");

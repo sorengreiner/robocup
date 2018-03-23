@@ -18,19 +18,6 @@
 
 #define GPIO_KEYS_PATH  "/dev/input/by-path/platform-gpio-keys.0-event" 
 
-/*
-enum {
-	EV3_KEY__NONE_ = 0,
-
-	EV3_KEY_UP     = 0x01L,
-	EV3_KEY_DOWN   = 0x02L,
-	EV3_KEY_LEFT   = 0x04L,
-	EV3_KEY_RIGHT  = 0x08L,
-	EV3_KEY_CENTER = 0x10L,
-	EV3_KEY_BACK   = 0x20L,
-};
-*/
-
 #define DESC_LIMIT    64
 #define DESC_VEC_LEN  4 
 

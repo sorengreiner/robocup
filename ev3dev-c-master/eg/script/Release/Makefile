@@ -1,7 +1,7 @@
 
 PROGRAM = roborun
 
-OBJECTS_C = robocup.o magnus.o line.o keys.o pid.o
+OBJECTS_C = actions.o conditions.o robocup.o magnus.o line.o keys.o pid.o
 
 FLAGS_C = -std=gnu99 -O2
 

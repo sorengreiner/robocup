@@ -1,4 +1,8 @@
 #include "magnus.h"
+#include "keys.h"
+#include "actions.h"
+#include "conditions.h"
+#include "car.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -7,7 +11,6 @@
 #include <string.h>
 #include <strings.h>
 #include <math.h>
-#include "keys.h"
 
 
 #ifdef WIN32
@@ -18,21 +21,7 @@
 #include <unistd.h> // for usleep
 #endif
 
-/*
-void sleep_ms(int milliseconds) // cross-platform sleep function
-{
-#ifdef WIN32
-    Sleep(milliseconds);
-#elif _POSIX_C_SOURCE >= 199309L
-    struct timespec ts;
-    ts.tv_sec = milliseconds / 1000;
-    ts.tv_nsec = (milliseconds % 1000) * 1000000;
-    nanosleep(&ts, NULL);
-#else
-    usleep(milliseconds * 1000);
-#endif
-}
-*/
+
 uint64_t TimeMilliseconds(void)
 {
 #ifdef WIN32
@@ -83,12 +72,6 @@ void SequenceInit(SSequence* pSequence)
 }
 
 
-bool BranchLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("BranchLeft "); return true; }
-bool BranchRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("BranchRight "); return true; }
-bool JunctionLeft(SState* s, int noun0, float value0, int noun1, float value1) { printf("JunctionLeft "); return true; }
-bool JunctionRight(SState* s, int noun0, float value0, int noun1, float value1) { printf("JunctionRight "); return true; }
-
-
 typedef struct 
 {
 	const char* name;
@@ -96,8 +79,8 @@ typedef struct
 
 SKeywordItem g_Keywords[NUM_KEYWORDS] =
 {
-	{"UNTIL"},
-	{"CONST"},
+	{"until"},
+	{"const"},
 	{"#"}
 };
 
@@ -127,17 +110,17 @@ typedef struct
 
 SActionItem g_Actions[NUM_ACTIONS] =
 {
-	{"BACKWARD", 		Backward},
-	{"FOLLOW", 			Follow},
-	{"FOLLOWLEFT", 		FollowLeft},
-	{"FOLLOWRIGHT", 	FollowRight},
-	{"FORWARD", 		Forward},
-	{"SET", 			Set},
-	{"STOP", 			Stop},
-	{"TURNLEFT", 		TurnLeft},
-	{"TURNRIGHT", 		TurnRight},
-	{"WAIT", 			Wait},
-	{"TOOL", 			Tool},
+	{"backward", 		Backward},
+	{"follow", 			Follow},
+	{"followleft", 		FollowLeft},
+	{"followright", 	FollowRight},
+	{"forward", 		Forward},
+	{"set", 			Set},
+	{"stop", 			Stop},
+	{"turnleft", 		TurnLeft},
+	{"turnright", 		TurnRight},
+	{"wait", 			Wait},
+	{"tool", 			Tool},
 };
 
 
@@ -166,12 +149,12 @@ typedef struct
 
 SCondItem g_Conditions[NUM_COND] =
 {
-	{"BRANCHLEFT", 		BranchLeft},
-	{"BRANCHRIGHT", 	BranchRight},
-	{"JUNCTIONLEFT", 	JunctionLeft},
-	{"JUNCTIONRIGHT", 	JunctionRight},
-	{"LINE", 			Line},
-	{"NOLINE", 			NoLine},
+	{"branchleft", 		BranchLeft},
+	{"branchright", 	BranchRight},
+	{"junctionleft", 	JunctionLeft},
+	{"junctionright", 	JunctionRight},
+	{"line", 			Line},
+	{"noline", 			NoLine},
 };
 
 ECond MatchCondition(const char* token)
@@ -257,28 +240,28 @@ EBooleanOperator MatchBooleanOperator(const char* token)
 
 SVarItem g_Vars[NUM_VARS] =
 {
-	{"NIL",			0.0 },
-	{"TRUE",		1.0 },
-	{"FALSE",		0.0 },
-	{"SPEED",		0.0 },
-	{"ODOMETER",	0.0 },
-	{"LODOMETER",	0.0 },
-	{"RODOMETER",	0.0 },
-	{"AODOMETER",	0.0 },
-	{"MARK",		0.0 },
-	{"ANGLE",		0.0 },
-	{"RADIUS",		0.0 },
-	{"TIME",		0.0 },
-	{"HEADING",		0.0 },
-	{"XPOS",		0.0 },
-	{"YPOS",		0.0 },
-	{"STEER",		0.0 },
-	{"KP",			1.0 },
-	{"KI",			0.0 },
-	{"KD",			0.0 },
-	{"WHITE",		50.0 },
-	{"BLACK",		30.0 },
-	{"TOOLPOS",		 0.0 }
+	{"nil",			0.0 },
+	{"true",		1.0 },
+	{"false",		0.0 },
+	{"speed",		0.0 },
+	{"odometer",	0.0 },
+	{"lodometer",	0.0 },
+	{"rodometer",	0.0 },
+	{"aodometer",	0.0 },
+	{"mark",		0.0 },
+	{"angle",		0.0 },
+	{"radius",		0.0 },
+	{"time",		0.0 },
+	{"heading",		0.0 },
+	{"xpos",		0.0 },
+	{"ypos",		0.0 },
+	{"steer",		0.0 },
+	{"kp",			1.0 },
+	{"ki",			0.0 },
+	{"kd",			0.0 },
+	{"white",		50.0 },
+	{"black",		30.0 },
+	{"toolpos",		 0.0 }
 };
 
 
@@ -359,11 +342,23 @@ void PrintValue(EVar eVar, float value)
 {
 	if(eVar < NUM_VARS)
 	{
-		printf("%s=%f", g_Vars[eVar].name, value);
+		printf("%s=%g", g_Vars[eVar].name, value);
 	}
 	else
 	{
 		printf("NA");
+	}
+}
+
+void PrintValuePretty(EVar eVar, float value)
+{
+	if(eVar < NUM_VARS && eVar != V_NIL)
+	{
+		printf("%s", g_Vars[eVar].name);
+	}
+	else
+	{
+		printf("%g", value);
 	}
 }
 
@@ -405,6 +400,7 @@ void PrintBoolean(EBooleanOperator eBool)
 
 void SequencePrint(SSequence* pSequence)
 {
+    printf("%4d   ", pSequence->line);
 	PrintAction(pSequence->eAction);
 	printf(" ");
 	PrintValue(pSequence->noun0, pSequence->value0);
@@ -412,7 +408,7 @@ void SequencePrint(SSequence* pSequence)
 	PrintValue(pSequence->noun1, pSequence->value1);
 	printf(" ");
 
-	printf("UNTIL ");
+	printf("until ");
 
 	PrintCondition(pSequence->eConditionA);
 	printf(" ");
@@ -434,6 +430,70 @@ void SequencePrint(SSequence* pSequence)
 	printf(" ");
 	PrintValue(pSequence->right_noun1, pSequence->right_value1);
 	printf("\n");
+}
+
+
+void SequencePrintPretty(SSequence* pSequence)
+{
+    printf("%4d   ", pSequence->line);
+    if(pSequence->eAction != NUM_ACTIONS)
+    {
+        PrintAction(pSequence->eAction);
+        if(pSequence->noun0 != NUM_VARS)
+        {
+            printf(" ");
+            PrintValue(pSequence->noun0, pSequence->value0);
+        }
+        
+        if(pSequence->noun1 != NUM_VARS)
+        {
+            printf(" ");
+            PrintValue(pSequence->noun1, pSequence->value1);
+        }
+
+        if(pSequence->pConditionA)
+        {
+            printf(" ");
+            printf("until ");
+
+            if(pSequence->eConditionA != NUM_COND)
+            {
+                PrintCondition(pSequence->eConditionA);
+                printf(" ");
+            }
+            else
+            {
+                PrintValuePretty(pSequence->left_noun0, pSequence->left_value0);
+                printf(" ");
+                PrintOperator(pSequence->eOpA);
+                printf(" ");
+                PrintValuePretty(pSequence->left_noun1, pSequence->left_value1);
+                printf(" ");
+            }
+            
+            if(pSequence->eBooleanOperator != NUM_BOOLEANOPERATOR)
+            {
+                PrintBoolean(pSequence->eBooleanOperator);
+                printf(" ");
+
+                if(pSequence->eConditionB != NUM_COND)
+                {
+                    PrintCondition(pSequence->eConditionB);
+                    printf(" ");
+                }
+                else
+                {
+                    PrintValuePretty(pSequence->right_noun0, pSequence->right_value0);
+                    printf(" ");
+                    PrintOperator(pSequence->eOpB);
+                    printf(" ");
+                    PrintValuePretty(pSequence->right_noun1, pSequence->right_value1);
+                }
+            }
+        }
+    }
+	printf("\n");
+   
 }
 
 
@@ -741,7 +801,6 @@ bool Compile(char* in, SProgram* pProgram)
 		buffer[len + 1] = '#';
 		buffer[len + 2] = ' ';
 		buffer[len + 3] = 0;
-//		printf("\nline: \"%s\"\n", buffer);
 
 		SSequence item;
         SequenceInit(&item);
@@ -753,6 +812,7 @@ bool Compile(char* in, SProgram* pProgram)
         
         SSequence* pSequence = malloc(sizeof(SSequence));
         *pSequence = item;
+        pSequence->line = line;
         if(pProgram->pFirst == 0)
         {
             pProgram->pFirst = pSequence;
@@ -764,181 +824,6 @@ bool Compile(char* in, SProgram* pProgram)
         line++;
 	}
 	return true;
-}
-
-
-bool Set(SState* s, int noun0, float value0, int noun1, float value1) 
-{ 
-	if(s->index == 0)
-	{
-	}
-	return true;
-}
-
-
-bool Wait(SState* s, int noun0, float value0, int noun1, float value1) 
-{ 
-	if(s->index == 0)
-	{
-	}
-	return false;
-}
-
-
-bool Equal(SState* s, int noun0, float value0, int noun1, float value1)
-{ 
-	float left = value0;
-	float right = value1;
-
-	if(noun0 < NUM_VARS && noun0 != V_NIL)
-	{
-		left = g_Vars[noun0].value;
-	}
-
-	if(noun1 < NUM_VARS && noun1 != V_NIL)
-	{
-		right = g_Vars[noun1].value;
-	}
-
-	return left == right; 
-}
-
-
-bool Approximate(SState* s, int noun0, float value0, int noun1, float value1)
-{ 
-	float left = value0;
-	float right = value1;
-
-	if(noun0 < NUM_VARS && noun0 != V_NIL)
-	{
-		left = g_Vars[noun0].value;
-	}
-
-	if(noun1 < NUM_VARS && noun1 != V_NIL)
-	{
-		right = g_Vars[noun1].value;
-	}
-
-	return fabs(left - right) < 0.1; 
-}
-
-
-bool ApproximateNotEqual(SState* s, int noun0, float value0, int noun1, float value1)
-{ 
-	float left = value0;
-	float right = value1;
-
-	if(noun0 < NUM_VARS && noun0 != V_NIL)
-	{
-		left = g_Vars[noun0].value;
-	}
-
-	if(noun1 < NUM_VARS && noun1 != V_NIL)
-	{
-		right = g_Vars[noun1].value;
-	}
-
-	return fabs(left - right) > 0.1; 
-}
-
-
-bool NotEqual(SState* s, int noun0, float value0, int noun1, float value1)
-{ 
-//	printf("NotEqual "); 
-	float left = value0;
-	float right = value1;
-
-	if(noun0 < NUM_VARS && noun0 != V_NIL)
-	{
-		left = g_Vars[noun0].value;
-	}
-
-	if(noun1 < NUM_VARS && noun1 != V_NIL)
-	{
-		right = g_Vars[noun1].value;
-	}
-
-	return left != right; 
-}
-
-
-bool GreaterEqual(SState* s, int noun0, float value0, int noun1, float value1)
-{ 
-//	printf("GreaterEqual "); 
-	float left = value0;
-	float right = value1;
-
-	if(noun0 < NUM_VARS && noun0 != V_NIL)
-	{
-		left = g_Vars[noun0].value;
-	}
-
-	if(noun1 < NUM_VARS && noun1 != V_NIL)
-	{
-		right = g_Vars[noun1].value;
-	}
-
-	return left >= right; 
-}
-
-
-bool Greater(SState* s, int noun0, float value0, int noun1, float value1)
-{ 
-//	printf("Greater "); 
-	float left = value0;
-	float right = value1;
-
-	if(noun0 < NUM_VARS && noun0 != V_NIL)
-	{
-		left = g_Vars[noun0].value;
-	}
-
-	if(noun1 < NUM_VARS && noun1 != V_NIL)
-	{
-		right = g_Vars[noun1].value;
-	}
-
-	return left > right; 
-}
-
-
-bool Less(SState* s, int noun0, float value0, int noun1, float value1)
-{ 
-//	printf("Less "); 
-	float left = value0;
-	float right = value1;
-
-	if(noun0 < NUM_VARS && noun0 != V_NIL)
-	{
-		left = g_Vars[noun0].value;
-	}
-
-	if(noun1 < NUM_VARS && noun1 != V_NIL)
-	{
-		right = g_Vars[noun1].value;
-	}
-
-	return left < right; 
-}
-
-
-bool LessEqual(SState* s, int noun0, float value0, int noun1, float value1)
-{ 
-//	printf("LessEqual "); 
-	float left = value0;
-	float right = value1;
-
-	if(noun0 < NUM_VARS && noun0 != V_NIL)
-	{
-		left = g_Vars[noun0].value;
-	}
-
-	if(noun1 < NUM_VARS && noun1 != V_NIL)
-	{
-		right = g_Vars[noun1].value;
-	}
-
-	return left <= right; 
 }
 
 
@@ -960,7 +845,7 @@ void RunProgram(SProgram* pProgram)
 		{
 			if(s.index == 0)
 			{
-				SequencePrint(pSequence);
+				SequencePrintPretty(pSequence);
 				AssignVar(pSequence->noun0, pSequence->value0);
 				AssignVar(pSequence->noun1, pSequence->value1);
 			}

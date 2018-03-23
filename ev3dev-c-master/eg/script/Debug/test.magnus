@@ -1,4 +1,4 @@
-follow speed=10 time=3 until speed > 4 and time < 8
-follow speed=10 time=3 until 4 < speed and 8 > time
-set speed=10 time=3 until junctionleft speed 5 or line 3 time
-set speed=10 time=3 until junctionleft speed 5 or line time speed
+follow speed=10 time=3 until speed > 4 and time > 8
+follow speed=10 time=3 until 4 < speed and time > 8
+
+ 

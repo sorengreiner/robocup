@@ -15,6 +15,20 @@
 #include <math.h>
 
 
+typedef struct
+{
+	uint64_t t0;
+	uint64_t t1;
+	float rx0;
+	float ry0;
+	float rz0;
+	float rx1;
+	float ry1;
+	float rz1;
+	float yaw;
+} SInertialNavigation;
+
+
 #define MOTOR_LEFT     OUTC
 #define MOTOR_RIGHT    OUTB
 #define MOTOR_TOOL     OUTD
@@ -31,27 +45,39 @@ uint8_t snColor;
 uint8_t snLine;
 uint8_t snGyro;
 
-
-typedef struct
-{
-	uint64_t t0;
-	uint64_t t1;
-	float rx0;
-	float ry0;
-	float rz0;
-	float rx1;
-	float ry1;
-	float rz1;
-	float yaw;
-} SInertialNavigation;
-
-
 int leftCenter = -8;
 int rightCenter = 2;
 SCar car;
 SInertialNavigation inertial;
+SLine lineSensor;
+
 
 void UpdateGyro();
+
+
+//-----------------------------------------------------------------------------
+// Conversion
+//-----------------------------------------------------------------------------
+
+float LinePosToPhysical(float pos)
+{
+	return (LINESENSOR_WIDTH_MM*pos - LINESENSOR_WIDTH_MM/2);
+}
+
+
+int MeterToTacho(float meter)
+{
+	int tacho = (int)(1000*TACHO_RESOLUTION*meter/(M_PI*BACKWHEEL_DIAMETER_MM));
+	return tacho;
+}
+
+
+float TachoToMeter(int tacho)
+{
+	float meter = tacho*M_PI*(BACKWHEEL_DIAMETER_MM/1000)/TACHO_RESOLUTION;
+	return meter;
+}
+
 
 int AngleToServoLeft(float angle)
 {
@@ -64,6 +90,22 @@ int AngleToServoRight(float angle)
 {
 	int servo = (int)(-angle*118.0f/90.0f) + rightCenter;
 	return servo;
+}
+
+
+int PositionToToolSp(float position)
+{
+	if(position < 0)
+	{
+		position = 0;
+	}
+	if(position > 1.0)
+	{
+		position = 1.0;
+	}
+
+	int sp = (int)(-position*380);
+	return sp;
 }
 
 
@@ -207,11 +249,13 @@ bool RobocupInit( void )
 	return bDetectMotors && bDetectServoRight && bDetectServoLeft && bDetectServoBatteryLevel && bDetectLineSensor && bDetectGyro;
 }
 
+
+//-----------------------------------------------------------------------------
 // @brief speed	Speed in cm/s
 // @brief wheel turn angle in degrees (angle of fiktive center wheel)
+//-----------------------------------------------------------------------------
 void UpdateCar(float speed, float angle)
 {
-//	printf("UpdateCar %f %f", speed, angle);
 	CarComputeTurningAngle(&car, angle, speed);
 
 	int motorSetpointLeft = -(int)(max_speed * car.fBackWheelLeftSpeed / 100); 
@@ -222,25 +266,8 @@ void UpdateCar(float speed, float angle)
 
 	int servoLeftSp = AngleToServoLeft(car.fFrontWheelLeftAngle);
 	int servoRightSp = AngleToServoRight(car.fFrontWheelRightAngle); 
-//	printf("servo: %d %d\n", servoLeftSp, servoRightSp);
 	set_servo_position_sp(snLeft, servoLeftSp);
 	set_servo_position_sp(snRight, servoRightSp);
-}
-
-
-int PositionToToolSp(float position)
-{
-	if(position < 0)
-	{
-		position = 0;
-	}
-	if(position > 1.0)
-	{
-		position = 1.0;
-	}
-
-	int sp = (int)(-position*380);
-	return sp;
 }
 
 
@@ -253,7 +280,10 @@ void UpdateTool(float speed, float position)
 }
 
 
-SLine lineSensor;
+SLine* GetLineSensor(void)
+{
+    return &lineSensor;
+}
 
 
 void UpdateLineSensor(void)
@@ -262,18 +292,11 @@ void UpdateLineSensor(void)
 	if(n == 8)
 	{
 		uint8_t* p = lineSensor.data;
-//		printf("%d %d %d %d %d %d %d %d\n ", p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]);
 		LineAnalyze(&lineSensor, GetVar(V_BLACK), GetVar(V_WHITE));
 		LineDataPrint(&lineSensor);	
-//		printf("%f le: %d %f re: %d %f\n", lineSensor.p0, lineSensor.nLeftEdges, lineSensor.leftEdge, lineSensor.nRightEdges, lineSensor.rightEdge);
 	}
 }
 
-
-uint64_t TimeMilliseconds(void);
-
-
-//SInertialNavigation inertial;
 
 void InertialNavigationInit(void)
 {
@@ -289,6 +312,10 @@ void InertialNavigationInit(void)
 }
 
 
+//-----------------------------------------------------------------------------
+// Read gyro and update yaw
+//-----------------------------------------------------------------------------
+
 void UpdateGyro(void)
 {
 	float value;
@@ -296,338 +323,12 @@ void UpdateGyro(void)
 	if(get_sensor_value0(snGyro, &value) > 0)
 	{
 		inertial.yaw = value;
-//		printf("yaw:%f\n", inertial.yaw);
 	}
 }
-
 
 //-----------------------------------------------------------------------------
-// Script handler functions
+// Update vars read from physical sensors and set
 //-----------------------------------------------------------------------------
-
-
-bool Line(SState* s, int noun0, float value0, int noun1, float value1)
-{
-	return (lineSensor.nLeftEdges > 0) || (lineSensor.nRightEdges > 0);
-}
-
-bool NoLine(SState* s, int noun0, float value0, int noun1, float value1)
-{
-	return (lineSensor.nLeftEdges == 0) && (lineSensor.nRightEdges == 0);
-}
-
-
-#define LINESENSOR_WIDTH_MM (46.0)
-
-float LinePosToPhysical(float pos)
-{
-	return (LINESENSOR_WIDTH_MM*pos - LINESENSOR_WIDTH_MM/2);
-}
-
-
-typedef struct
-{
-	float fLastLinePos;
-	float fTarget;
-	SPidr pidr;
-} SFollowState;
-
-typedef enum
-{
-	TARGETMODE_LEFTLINE = 0,
-	TARGETMODE_RIGHTLINE,
-	TARGETMODE_CENTER,
-	TARGETMODE_HEADING,
-} ETargetMode;
-
-
-bool FollowTarget(SState* s, ETargetMode eTargetMode) 
-{ 
-	SFollowState* p = (SFollowState*)s->stack;
-	if(s->index == 0)
-	{
-		p->fLastLinePos = 0.0f;
-		p->pidr.max = 50;
-		p->pidr.min = -50;
-		p->pidr.Kp = GetVar(V_KP);
-		p->pidr.Ki = GetVar(V_KI);
-		p->pidr.Kd = GetVar(V_KD);
-		p->pidr.error = 0;
-		p->pidr.integral = 0;
-	}
-
-	// Get current target
-	float fTarget = 0.0; // Center of line sensor is the target
-	float pos = 0.0;
-	switch(eTargetMode)
-	{
-	case TARGETMODE_LEFTLINE: 
-		if(lineSensor.nLeftEdges > 0)
-		{
-			p->fLastLinePos = LinePosToPhysical(lineSensor.leftEdge);
-		}
-		pos = p->fLastLinePos;
-		fTarget = 0.0;
-		break;
-	case TARGETMODE_RIGHTLINE: 
-		if(lineSensor.nRightEdges > 0)
-		{
-			p->fLastLinePos = LinePosToPhysical(lineSensor.rightEdge);
-		}
-		pos = p->fLastLinePos;
-		fTarget = 0.0;
-		break;
-	case TARGETMODE_CENTER: 
-		if(lineSensor.n > 0)
-		{
-			p->fLastLinePos = LinePosToPhysical(lineSensor.p0);
-		}
-		pos = p->fLastLinePos;
-		fTarget = 0.0;
-		break;
-	case TARGETMODE_HEADING: 
-		break;
-	default: break;
-	}
-	
-	p->pidr.dt = s->dt;
-	float fAngle = PidCompute(&p->pidr, fTarget, pos);
-	float fSpeed = GetVar(V_SPEED);
-	UpdateCar(fSpeed, fAngle);
-
-	return false;
-}
-
-
-
-bool Follow(SState* s, int noun0, float value0, int noun1, float value1) 
-{ 
-	return FollowTarget(s, TARGETMODE_CENTER);
-}
-
-
-bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1) 
-{ 
-	return FollowTarget(s, TARGETMODE_LEFTLINE);
-}
-
-
-bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1) 
-{ 
-	return FollowTarget(s, TARGETMODE_RIGHTLINE);
-}
-
-
-bool Stop(SState* s, int noun0, float value0, int noun1, float value1) 
-{ 
-	if(s->index == 0)
-	{
-		UpdateCar(0, 0);
-	}
-	return true;
-}
-
-
-bool Tool(SState* s, int noun0, float value0, int noun1, float value1)
-{
-	if(s->index == 0)
-	{
-		float fToolPos = GetVar(V_TOOLPOS);
-		UpdateTool(100, fToolPos);
-	}
-	return true;
-}
-
-
-bool Forward(SState* s, int noun0, float value0, int noun1, float value1) 
-{ 
-	if(s->index == 0)
-	{
-		float fSpeed = GetVar(V_SPEED);
-		float fSteer = GetVar(V_STEER);
-		UpdateCar(fSpeed, fSteer);
-	}
-
-	return false;
-}
-
-
-bool Backward(SState* s, int noun0, float value0, int noun1, float value1) 
-{ 
-	if(s->index == 0)
-	{
-		float fSpeed = GetVar(V_SPEED);
-		float fSteer = GetVar(V_STEER);
-		UpdateCar(-fSpeed, fSteer);
-	}
-
-	return false;
-}
-
-
-typedef struct
-{
-	float fDistance;	// Distance to complete when turning angle degrees
-	float fHeading;		// Heading at entry
-} STurnState;
-
-
-bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
-{ 
-	STurnState* p = (STurnState*)s->stack;
-	float fAngle = GetVar(V_ANGLE);
-//	float fAngle = 90;
-
-	if(s->index == 0)
-	{
-		// Ignore V_STEER while we are turning, but use V_SPEED
-		p->fHeading = GetVar(V_HEADING);
-		float fSpeed = GetVar(V_SPEED);
-		float fRadius = GetVar(V_RADIUS); // Turn radius in meter
-		// Limit turn radius
-		if(fRadius < 0.2)
-		{
-			fRadius = 0.2;
-		}
-
-		if(fRadius > 100.0)
-		{
-			fRadius = 100.0;
-		}
-
-//		p->fDistance = fRadius*90*M_PI/180.0;
-
-//		float fWheelAngle = 180.0*atan2(car.fCarLength/1000, fRadius)/M_PI;
-//		printf("angle=%f wangle=%f radius=%f yaw:%f\n", fAngle, fWheelAngle, fRadius, p->fHeading);
-//		UpdateCar(fSpeed, fWheelAngle);
-	}
-
-	float fHeading = GetVar(V_HEADING);
-//	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
-//	if(p->fHeading - fHeading > fAngle)
-	float diff = fAngle - fHeading;
-	float fSteer = -diff*2;
-	if(fSteer > 0)
-	{
-		if(fSteer > 30)
-		{
-			fSteer = 30;
-		}
-		else if(fSteer < 5)
-		{
-			fSteer = 5;
-		}
-	}
-	else
-	{
-		if(fSteer < - 30)
-		{
-			fSteer = -30;	
-		}
-		else if(fSteer > -5)
-		{
-			fSteer = -5;
-		}
-	}
-
-	UpdateCar(GetVar(V_SPEED), fSteer);
-
-	if(fHeading <= fAngle)
-	{
-		UpdateCar(GetVar(V_SPEED), 0);
-		printf("yaw:%f\n", fHeading);
-		return true;
-	}
-
-	return false; 
-}
-
-bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
-{
-	STurnState* p = (STurnState*)s->stack;
-	float fAngle = GetVar(V_ANGLE);
-
-	if(s->index == 0)
-	{
-		// Ignore V_STEER while we are turning, but use V_SPEED
-		p->fHeading = GetVar(V_HEADING);
-		float fSpeed = GetVar(V_SPEED);
-		float fRadius = GetVar(V_RADIUS); // Turn radius in meter
-		// Limit turn radius
-		if(fRadius < 0.2)
-		{
-			fRadius = 0.2;
-		}
-
-		if(fRadius > 100.0)
-		{
-			fRadius = 100.0;
-		}
-
-//		p->fDistance = fRadius*90*M_PI/180.0;
-
-//		float fWheelAngle = 180.0*atan2(car.fCarLength/1000, fRadius)/M_PI;
-//		printf("yaw:%f\n", p->fHeading);
-//		UpdateCar(fSpeed, -fWheelAngle);
-	}
-
-	float fHeading = GetVar(V_HEADING);
-//	printf("%f %f %f\n", fOdometer, p->fOdometer, p->fDistance);
-//	if(fHeading - p->fHeading > fAngle)
-	float diff = fAngle - fHeading;
-	float fSteer = -diff*2;
-
-	if(fSteer > 0)
-	{
-		if(fSteer > 30)
-		{
-			fSteer = 30;
-		}
-		else if(fSteer < 5)
-		{
-			fSteer = 5;
-		}
-	}
-	else
-	{
-		if(fSteer < - 30)
-		{
-			fSteer = -30;	
-		}
-		else if(fSteer > -5)
-		{
-			fSteer = -5;
-		}
-	}
-
-	UpdateCar(GetVar(V_SPEED), fSteer);
-
-	if(fHeading >= fAngle)
-	{
-		UpdateCar(GetVar(V_SPEED), 0);
-		printf("yaw:%f\n", fHeading);
-		return true;
-	}
-
-	return false; 
-}
-
-
-#define BACKWHEEL_DIAMETER_MM ( 81.6 )
-#define TACHO_RESOLUTION ( 360 )
-
-int MeterToTacho(float meter)
-{
-	int tacho = (int)(1000*TACHO_RESOLUTION*meter/(M_PI*BACKWHEEL_DIAMETER_MM));
-	return tacho;
-}
-
-float TachoToMeter(int tacho)
-{
-	float meter = tacho*M_PI*(BACKWHEEL_DIAMETER_MM/1000)/TACHO_RESOLUTION;
-	return meter;
-}
-
 
 void UpdateVars(float delta)
 {
@@ -636,17 +337,14 @@ void UpdateVars(float delta)
 	// Update odometer
 	int tachoLeft = tacho_get_position( MOTOR_LEFT, 0 );
 	int tachoRight = tacho_get_position( MOTOR_RIGHT, 0 );
-//	printf("tacho: %d, %d\n", tachoLeft, tachoRight);
 	float odometerLeft = TachoToMeter(-tachoLeft);
 	float odometerRight = TachoToMeter(-tachoRight);
 	float odometerAbsolute = (odometerLeft + odometerRight)/2;
-//	float heading = (180/M_PI)*(odometerLeft - odometerRight)/(car.fBackWidth/1000);
 	float heading = inertial.yaw;
 	float odometer = GetVar(V_ODOMETER);
 	float mark = GetVar(V_MARK);
 	odometer = odometerAbsolute - GetVar(V_MARK);
 
-//	printf("o:%f lo:%f ro:%f ao:%f m:%f h:%f\n", odometer, odometerLeft, odometerRight, odometerAbsolute, mark, heading);
 	SetVar(V_ODOMETER, odometer);
 	SetVar(V_LODOMETER, odometerLeft);
 	SetVar(V_RODOMETER, odometerRight);
@@ -660,6 +358,10 @@ void UpdateVars(float delta)
 	UpdateLineSensor();
 }
 
+
+//-----------------------------------------------------------------------------
+// Assign var and perform side-effects
+//-----------------------------------------------------------------------------
 
 void AssignVar(int noun, float value)
 {
@@ -756,7 +458,6 @@ int main(int argc, char* argv[])
 		if(Compile(p, &program))
         {
             // Run program
-            PrintProgram(&program);
             RunProgram(&program);
             
             DeleteProgram(&program);

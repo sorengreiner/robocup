@@ -975,6 +975,7 @@ bool LoadProgram(SProgram* pProgram, const char* filename)
         }
         free(p);
         fclose(file);
+	return bProgramLoaded;
     }
     else
     {

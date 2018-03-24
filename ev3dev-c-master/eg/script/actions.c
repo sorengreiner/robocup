@@ -134,6 +134,8 @@ bool Stop(SState* s, int noun0, float value0, int noun1, float value1)
 bool Straight(SState* s, int noun0, float value0, int noun1, float value1) 
 { 
 	SFollowState* p = (SFollowState*)s->stack;
+	float heading = GetVar(V_HEADING);
+	float course = GetVar(V_COURSE);
 	if(s->index == 0)
 	{
 		p->pidr.max = 35;
@@ -143,17 +145,13 @@ bool Straight(SState* s, int noun0, float value0, int noun1, float value1)
 		p->pidr.Kd = GetVar(V_KD);
 		p->pidr.error = 0;
 		p->pidr.integral = 0;
+		printf("heading:%g course:%g\n", heading, course);
 	}
-
-	// Get current target
-	float target = GetVar(V_COURSE);
-	float pos = GetVar(V_HEADING);
 	
 	p->pidr.dt = s->dt;
-	float fAngle = PidCompute(&p->pidr, target, pos);
+	float fAngle = PidCompute(&p->pidr, course, heading);
 	float fSpeed = GetVar(V_SPEED);
 	UpdateCar(fSpeed, -fAngle);
-	printf("yaw:%f\n", pos);
 	return false;
 }
 

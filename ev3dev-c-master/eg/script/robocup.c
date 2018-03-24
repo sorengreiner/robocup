@@ -44,6 +44,7 @@ uint8_t snLeft;
 uint8_t snColor;
 uint8_t snLine;
 uint8_t snGyro;
+uint8_t snProx;
 
 int leftCenter = -8;
 int rightCenter = 2;
@@ -218,13 +219,13 @@ bool RobocupInit( void )
 	}
 	printf("%s Detecting servo battery\n", bDetectServoBatteryLevel ? "[  OK  ]" : "[FAILED]");
 
-	bool bDetectColorSensor = false;
-	if ( ev3_search_sensor( LEGO_EV3_COLOR, &snColor, 0 )) 
+	bool bDetectProxSensor = false;
+	if ( ev3_search_sensor( LEGO_EV3_IR, &snProx, 0 )) 
 	{
-		bDetectColorSensor = true;
-		set_sensor_mode( snColor, "COL-REFLECT" ); 
+		bDetectProxSensor = true;
+		set_sensor_mode_inx( snProx, LEGO_EV3_IR_IR_PROX ); 
 	}
-	printf("%s Detecting color sensor\n", bDetectColorSensor ? "[  OK  ]" : "[FAILED]");
+	printf("%s Detecting proximity sensor\n", bDetectProxSensor ? "[  OK  ]" : "[FAILED]");
 
 	bool bDetectLineSensor = false;
 	if ( ev3_search_sensor( MS_LIGHT_ARRAY, &snLine, 0 )) 
@@ -249,7 +250,7 @@ bool RobocupInit( void )
 	}
 	printf("%s Detecting gyro\n", bDetectGyro ? "[  OK  ]" : "[FAILED]");
 
-	return bDetectMotors && bDetectServoRight && bDetectServoLeft && bDetectServoBatteryLevel && bDetectLineSensor && bDetectGyro;
+	return bDetectMotors && bDetectServoRight && bDetectServoLeft && bDetectServoBatteryLevel && bDetectLineSensor && bDetectGyro && bDetectProxSensor;
 }
 
 
@@ -429,47 +430,57 @@ void AssignVar(int noun, float value)
 
 int main(int argc, char* argv[])
 {
-	if(!brick_init())
-	{
-		return 1;
-	}
+    FILE* file = 0;
+    if(argc != 2)
+    {
+        printf("usage %s <file.magnus>\n", argv[0]);
+        return 1;
+    }
 
-	if(!KeysOpen())
-	{
-		printf("keys wont open\n");
-		return 1;
-	}
+    file = fopen(argv[1], "r");
+    if(file == 0)
+    {
+        printf("file %s not found\n", argv[1]);
+        return 1;
+    }
+
+    if(!brick_init())
+    {
+	fclose(file);
+        return 1;
+    }
+
+    if(!KeysOpen())
+    {
+        printf("keys wont open\n");
+        return 1;
+    }
  
-	LineInit(&lineSensor);
-	InertialNavigationInit();
+    LineInit(&lineSensor);
+    InertialNavigationInit();
 
-	if(!RobocupInit())
-	{
-		printf("Robocup init failed\n");
-		return 1;
-	}
+    if(!RobocupInit())
+    {
+        printf("Robocup init failed\n");
+        return 1;
+    }
 
-	if(argc > 1)
-	{
-		// Load script
-		FILE* file = fopen(argv[1], "r");
-		fseek(file, 0l, SEEK_END);
-		size_t size = ftell(file);
-		fseek(file, 0l, SEEK_SET);
-		char* p = malloc(size + 1);
-		int n = fread(p, 1, size, file);
-		p[n] = 0;
+	// Load script
+	fseek(file, 0l, SEEK_END);
+	size_t size = ftell(file);
+	fseek(file, 0l, SEEK_SET);
+	char* p = malloc(size + 1);
+	int n = fread(p, 1, size, file);
+	p[n] = 0;
         SProgram program;
-		if(Compile(p, &program))
+	if(Compile(p, &program))
         {
             // Run program
             RunProgram(&program);
-            
             DeleteProgram(&program);
         }
-		free(p);
-		fclose(file);
-	}
+        free(p);
+        fclose(file);
 
 	UpdateCar(0,0);
 	sleep_ms(500);

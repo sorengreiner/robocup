@@ -1,1 +1,4 @@
-stop
+set speed=10
+set odometer=0
+straight course=0 until odometer > 1
+

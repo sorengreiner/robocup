@@ -263,6 +263,8 @@ void UpdateCar(float speed, float angle)
 
 	int motorSetpointLeft = -(int)(max_speed * car.fBackWheelLeftSpeed / 100); 
 	int motorSetpointRight = -(int)(max_speed * car.fBackWheelRightSpeed / 100); 
+	motorSetpointLeft = motorSetpointLeft > 100 ? 100 : motorSetpointLeft;
+	motorSetpointRight = motorSetpointRight > 100 ? 100 : motorSetpointRight;
 	tacho_set_speed_sp( MOTOR_LEFT, motorSetpointLeft );
 	tacho_set_speed_sp( MOTOR_RIGHT, motorSetpointRight );
 	tacho_run_forever( MOTOR_BOTH ); 		
@@ -325,7 +327,7 @@ void UpdateGyro(void)
 	uint64_t t = TimeMilliseconds();
 	if(get_sensor_value0(snGyro, &value) > 0)
 	{
-		inertial.yaw = value;
+		inertial.yaw = value*360.0/365.0;
 	}
 }
 

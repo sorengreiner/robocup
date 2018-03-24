@@ -178,6 +178,7 @@ bool Compile(char* in, SProgram* pProgram);
 void RunProgram(SProgram* pProgram);
 void PrintProgram(SProgram* pProgram);
 void DeleteProgram(SProgram* pProgram);
+bool LoadProgram(SProgram* pProgram, const char* filename);
 uint64_t TimeMilliseconds(void);
 
 

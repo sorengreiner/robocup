@@ -54,7 +54,7 @@ SLine lineSensor;
 
 
 void UpdateGyro();
-
+void InertialNavigationInit(void);
 
 //-----------------------------------------------------------------------------
 // Conversion
@@ -165,6 +165,9 @@ bool RobocupInit( void )
 	car.fBackWidth = 180.0;
 
 	char s[256];
+    
+    LineInit(&lineSensor);
+    InertialNavigationInit();
 
 	// Detect motors for back wheels
 	bool bDetectMotors = false;
@@ -424,74 +427,61 @@ void AssignVar(int noun, float value)
 }
 
 
+
 //-----------------------------------------------------------------------------
 // Main entry
 //-----------------------------------------------------------------------------
 
 int main(int argc, char* argv[])
 {
-    FILE* file = 0;
     if(argc != 2)
     {
         printf("usage %s <file.magnus>\n", argv[0]);
         return 1;
     }
 
-    file = fopen(argv[1], "r");
-    if(file == 0)
+    SProgram program;
+    if(!LoadProgram(&program, argv[1]))
     {
-        printf("file %s not found\n", argv[1]);
+        printf("Program not loaded\n");
         return 1;
     }
-
-    if(!brick_init())
+    
+    if(brick_init())
     {
-	fclose(file);
-        return 1;
-    }
-
-    if(!KeysOpen())
-    {
-        printf("keys wont open\n");
-        return 1;
-    }
- 
-    LineInit(&lineSensor);
-    InertialNavigationInit();
-
-    if(!RobocupInit())
-    {
-        printf("Robocup init failed\n");
-        return 1;
-    }
-
-	// Load script
-	fseek(file, 0l, SEEK_END);
-	size_t size = ftell(file);
-	fseek(file, 0l, SEEK_SET);
-	char* p = malloc(size + 1);
-	int n = fread(p, 1, size, file);
-	p[n] = 0;
-        SProgram program;
-	if(Compile(p, &program))
+        if(KeysOpen())
         {
-            // Run program
-            RunProgram(&program);
-            DeleteProgram(&program);
+            if(RobocupInit())
+            {
+                RunProgram(&program);
+
+                // Stop and reset car
+                UpdateCar(0,0);
+                sleep_ms(500);
+                tacho_set_speed_sp( MOTOR_BOTH, 0 );
+                tacho_run_forever( MOTOR_BOTH );
+                set_servo_command_inx(snLeft, SERVO_FLOAT);
+                set_servo_command_inx(snRight, SERVO_FLOAT);	
+                tacho_reset(MOTOR_TOOL);
+            }
+            else
+            {
+                printf("RobocupInit failed\n");
+            }
+            KeysClose();
         }
-        free(p);
-        fclose(file);
+        else
+        {
+            printf("KeysOpen failed\n");
+        }
 
-	UpdateCar(0,0);
-	sleep_ms(500);
-
-	tacho_set_speed_sp( MOTOR_BOTH, 0 );
-	tacho_run_forever( MOTOR_BOTH );
-	set_servo_command_inx(snLeft, SERVO_FLOAT);
-	set_servo_command_inx(snRight, SERVO_FLOAT);	
-	tacho_reset(MOTOR_TOOL);
-	KeysClose();
-
-	brick_uninit();	
+        brick_uninit();
+    }
+    else
+    {
+        printf("brick_init failed\n");
+    }
+    DeleteProgram(&program);
+    
     return 0;
 }

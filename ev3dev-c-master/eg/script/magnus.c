@@ -955,3 +955,32 @@ void DeleteProgram(SProgram* pProgram)
     }
 }
 
+
+bool LoadProgram(SProgram* pProgram, const char* filename)
+{
+    bool bProgramLoaded = false;
+    FILE* file = fopen(filename, "r");
+    if(file != 0)
+    {
+        // Load script
+        fseek(file, 0l, SEEK_END);
+        size_t size = ftell(file);
+        fseek(file, 0l, SEEK_SET);
+        char* p = malloc(size + 1);
+        int n = fread(p, 1, size, file);
+        p[n] = 0;
+        if(Compile(p, pProgram))
+        {
+            bProgramLoaded = true;
+        }
+        free(p);
+        fclose(file);
+    }
+    else
+    {
+        printf("Program file %s not found\n", filename);
+        return false;
+    }
+}
+
+

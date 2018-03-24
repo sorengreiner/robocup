@@ -55,10 +55,25 @@ SLine lineSensor;
 
 void UpdateGyro();
 void InertialNavigationInit(void);
+void UpdateProximitySensor(void);
 
 //-----------------------------------------------------------------------------
 // Conversion
 //-----------------------------------------------------------------------------
+
+float Clamp(float value, float min, float max)
+{
+    if(value > max)
+    {
+        value = max;
+    }
+    if(value < min)
+    {
+        value = min;
+    }
+    return value;
+}
+
 
 float LinePosToPhysical(float pos)
 {
@@ -265,10 +280,35 @@ void UpdateCar(float speed, float angle)
 {
 	CarComputeTurningAngle(&car, angle, speed);
 
-	int motorSetpointLeft = -(int)(max_speed * car.fBackWheelLeftSpeed / 100); 
-	int motorSetpointRight = -(int)(max_speed * car.fBackWheelRightSpeed / 100); 
-	motorSetpointLeft = motorSetpointLeft > 100 ? 100 : motorSetpointLeft;
-	motorSetpointRight = motorSetpointRight > 100 ? 100 : motorSetpointRight;
+    // Convert to range -1 to 1
+    float l = car.fBackWheelLeftSpeed/100.0;
+    float r = car.fBackWheelRightSpeed/100.0;
+    
+    // Limit within -1 to 1 but conserve ratio to ensure turn radius
+    float lp = fabs(l);
+    float rp = fabs(r);
+    if(lp > rp)
+    {
+        if(lp > 1.0f)
+        {
+            // scale down speed
+            r = r/lp;
+            l = l/lp;
+        }
+    }
+    else
+    {
+        if(rp > 1.0f)
+        {
+            // scale down speed
+            l = l/rp;
+            r = r/rp;
+        }
+    }
+    
+    // Convert to motor units
+	int motorSetpointLeft = -(int)(max_speed * l); 
+	int motorSetpointRight = -(int)(max_speed * r); 
 	tacho_set_speed_sp( MOTOR_LEFT, motorSetpointLeft );
 	tacho_set_speed_sp( MOTOR_RIGHT, motorSetpointRight );
 	tacho_run_forever( MOTOR_BOTH ); 		
@@ -283,7 +323,8 @@ void UpdateCar(float speed, float angle)
 void UpdateTool(float speed, float position)
 {
 	int motorSetpoint = PositionToToolSp(position); 
-	tacho_set_speed_sp( MOTOR_TOOL, speed );
+    int motorSpeed = Clamp(speed*max_speed_tool/100, 0, max_speed_tool);
+	tacho_set_speed_sp( MOTOR_TOOL, motorSpeed );
 	tacho_set_position_sp(MOTOR_TOOL, motorSetpoint);
 	tacho_run_to_abs_pos( MOTOR_TOOL ); 		
 }
@@ -303,6 +344,16 @@ void UpdateLineSensor(void)
 		uint8_t* p = lineSensor.data;
 		LineAnalyze(&lineSensor, GetVar(V_BLACK), GetVar(V_WHITE), 0.66f);
 //		LineDataPrint(&lineSensor);	
+	}
+}
+
+
+void UpdateProximitySensor(void)
+{
+	float value;
+	if(get_sensor_value0(snProx, &value) > 0)
+	{
+        SetVar(V_PROX, value);
 	}
 }
 
@@ -364,6 +415,7 @@ void UpdateVars(float delta)
 
 	SetVar(V_TIME, time);
 
+    UpdateProximitySensor();
 	UpdateLineSensor();
 }
 

@@ -161,7 +161,8 @@ bool Tool(SState* s, int noun0, float value0, int noun1, float value1)
 	if(s->index == 0)
 	{
 		float fToolPos = GetVar(V_TOOLPOS);
-		UpdateTool(100, fToolPos);
+        float fToolSpeed = GetVar(V_TOOLSPEED);
+		UpdateTool(fToolSpeed, fToolPos);
 	}
 	return true;
 }

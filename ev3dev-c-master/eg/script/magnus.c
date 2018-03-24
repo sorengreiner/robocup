@@ -268,6 +268,7 @@ SVarItem g_Vars[NUM_VARS] =
 	{"toolpos",		 0.0 },
 	{"toolspeed",	 0.0 },
 	{"course",	     0.0 },
+	{"prox",	   100.0 },
 };
 
 

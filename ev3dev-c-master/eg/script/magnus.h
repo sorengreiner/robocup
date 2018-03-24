@@ -39,6 +39,7 @@ typedef enum
 	V_TOOLPOS,	// Tool position [0 to 1]
     V_TOOLSPEED,// Tool speed (0 to 1)
     V_COURSE,   // Course setting in straight commands (degrees)
+    V_PROX,     // Proximity sensor range
 	NUM_VARS
 } EVar;
 

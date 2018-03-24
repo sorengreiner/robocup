@@ -145,7 +145,7 @@ bool Straight(SState* s, int noun0, float value0, int noun1, float value1)
 		p->pidr.Kd = GetVar(V_KD);
 		p->pidr.error = 0;
 		p->pidr.integral = 0;
-		printf("heading:%g course:%g\n", heading, course);
+		printf("heading:%g course:%g prox:%g\n", heading, course, GetVar(V_PROX));
 	}
 	
 	p->pidr.dt = s->dt;

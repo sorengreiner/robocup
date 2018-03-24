@@ -354,6 +354,7 @@ void UpdateProximitySensor(void)
 	if(get_sensor_value0(snProx, &value) > 0)
 	{
         SetVar(V_PROX, value);
+//	printf("prox:%g\n", value);
 	}
 }
 
@@ -394,6 +395,7 @@ void UpdateVars(float delta)
 {
 	float time = GetVar(V_TIME);
 	UpdateGyro();
+	UpdateProximitySensor();
 	// Update odometer
 	int tachoLeft = tacho_get_position( MOTOR_LEFT, 0 );
 	int tachoRight = tacho_get_position( MOTOR_RIGHT, 0 );
@@ -414,8 +416,6 @@ void UpdateVars(float delta)
 	time += delta;
 
 	SetVar(V_TIME, time);
-
-    UpdateProximitySensor();
 	UpdateLineSensor();
 }
 

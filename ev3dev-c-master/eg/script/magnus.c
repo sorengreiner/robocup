@@ -266,7 +266,7 @@ SVarItem g_Vars[NUM_VARS] =
 	{"white",		50.0 },
 	{"black",		30.0 },
 	{"toolpos",		 0.0 },
-	{"toolspeed",	 0.0 },
+	{"toolspeed",	 10.0 },
 	{"course",	     0.0 },
 	{"prox",	   100.0 },
 };

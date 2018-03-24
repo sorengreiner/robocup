@@ -847,7 +847,7 @@ void RunProgram(SProgram* pProgram)
 		uint64_t t1 = t0;
 		t0 = TimeMilliseconds();
 		float delta = (t0 - t1);
-        printf("dt:%f\n", delta);
+//        printf("dt:%f\n", delta);
 		
 		bool bProceed = false;
 		if(pSequence->pAction)

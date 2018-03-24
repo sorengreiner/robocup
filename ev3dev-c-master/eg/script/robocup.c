@@ -236,10 +236,13 @@ bool RobocupInit( void )
 	bool bDetectGyro = false;
 	if ( ev3_search_sensor( LEGO_EV3_GYRO, &snGyro, 0 )) 
 	{
-		set_sensor_mode_inx( snGyro, LEGO_EV3_GYRO_GYRO_CAL );
-		printf("Calibrating gyro");
-		sleep_ms(2000);
+		printf("Calibration gyro\n");
+		sleep_ms(1000);
+		set_sensor_mode_inx( snGyro, LEGO_EV3_GYRO_GYRO_RATE );
+//		set_sensor_mode_inx( snGyro, LEGO_EV3_GYRO_GYRO_CAL );
+		sleep_ms(100);
 		set_sensor_mode_inx( snGyro, LEGO_EV3_GYRO_GYRO_ANG ); 
+		sleep_ms(10000);
 		UpdateGyro();
 	
 		bDetectGyro = true;
@@ -293,7 +296,7 @@ void UpdateLineSensor(void)
 	{
 		uint8_t* p = lineSensor.data;
 		LineAnalyze(&lineSensor, GetVar(V_BLACK), GetVar(V_WHITE), 0.66f);
-		LineDataPrint(&lineSensor);	
+//		LineDataPrint(&lineSensor);	
 	}
 }
 

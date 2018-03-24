@@ -1,9 +1,10 @@
 set odometer=0
-set kp=1
-set ki=0
-set kd=0
-straight course=0 odometer=0 until odometer > 1
-straight course=90 odometer=0 until odometer > 1
-straight course=180 odometer=0 until odometer > 1
-straight course=270 odometer=0 until odometer > 1
-straight course=360 odometer=0 until odometer > 1
+set kp=4
+set ki=0.0
+set kd=0.2
+set speed=30
+straight course=90 odometer=0 until odometer > 1.0
+straight course=180 odometer=0 until odometer > 1.0
+straight course=90 odometer=0 until odometer > 1.0
+straight course=0 odometer=0 until odometer > 1.0
+

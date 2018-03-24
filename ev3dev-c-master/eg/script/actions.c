@@ -136,8 +136,8 @@ bool Straight(SState* s, int noun0, float value0, int noun1, float value1)
 	SFollowState* p = (SFollowState*)s->stack;
 	if(s->index == 0)
 	{
-		p->pidr.max = 45;
-		p->pidr.min = -45;
+		p->pidr.max = 35;
+		p->pidr.min = -35;
 		p->pidr.Kp = GetVar(V_KP);
 		p->pidr.Ki = GetVar(V_KI);
 		p->pidr.Kd = GetVar(V_KD);
@@ -152,8 +152,8 @@ bool Straight(SState* s, int noun0, float value0, int noun1, float value1)
 	p->pidr.dt = s->dt;
 	float fAngle = PidCompute(&p->pidr, target, pos);
 	float fSpeed = GetVar(V_SPEED);
-	UpdateCar(fSpeed, fAngle);
-
+	UpdateCar(fSpeed, -fAngle);
+	printf("yaw:%f\n", pos);
 	return false;
 }
 

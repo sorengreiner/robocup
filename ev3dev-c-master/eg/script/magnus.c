@@ -121,6 +121,7 @@ SActionItem g_Actions[NUM_ACTIONS] =
 	{"forward", 		Forward},
 	{"set", 			Set},
 	{"stop", 			Stop},
+	{"straight",		Straight},
 	{"turnleft", 		TurnLeft},
 	{"turnright", 		TurnRight},
 	{"wait", 			Wait},
@@ -264,7 +265,9 @@ SVarItem g_Vars[NUM_VARS] =
 	{"kd",			0.0 },
 	{"white",		50.0 },
 	{"black",		30.0 },
-	{"toolpos",		 0.0 }
+	{"toolpos",		 0.0 },
+	{"toolspeed",	 0.0 },
+	{"course",	     0.0 },
 };
 
 

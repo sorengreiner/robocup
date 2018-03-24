@@ -35,6 +35,7 @@ bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1);
 bool Forward(SState* s, int noun0, float value0, int noun1, float value1);
 bool Set(SState* s, int noun0, float value0, int noun1, float value1);
 bool Stop(SState* s, int noun0, float value0, int noun1, float value1);
+bool Straight(SState* s, int noun0, float value0, int noun1, float value1);
 bool Tool(SState* s, int noun0, float value0, int noun1, float value1);  
 bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1);
 bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1);

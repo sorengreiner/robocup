@@ -27,7 +27,7 @@ typedef enum
 	V_ANGLE,	// Angle setting in turn commands
 	V_RADIUS,	// Radius of turning circle in turn commands
 	V_TIME,		// Time in s
-	V_HEADING,	// heading in degrees relative to north
+	V_HEADING,	// heading in degrees relative to initial heading (clockwise)
 	V_XPOS,		// X position as eastward value relative to starting point
 	V_YPOS,		// Y position as eastward value relative to starting point
 	V_STEER,	// Steering angle of front wheels
@@ -37,6 +37,8 @@ typedef enum
 	V_WHITE,	// Linesensor white level
 	V_BLACK,	// Linesensor black level
 	V_TOOLPOS,	// Tool position [0 to 1]
+    V_TOOLSPEED,// Tool speed (0 to 1)
+    V_COURSE,   // Course setting in straight commands (degrees)
 	NUM_VARS
 } EVar;
 
@@ -57,6 +59,7 @@ typedef enum
     A_FORWARD,
     A_SET,
     A_STOP,
+    A_STRAIGHT,
     A_TURNLEFT,
     A_TURNRIGHT,
     A_WAIT,

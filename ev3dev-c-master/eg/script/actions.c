@@ -131,6 +131,33 @@ bool Stop(SState* s, int noun0, float value0, int noun1, float value1)
 }
 
 
+bool Straight(SState* s, int noun0, float value0, int noun1, float value1) 
+{ 
+	SFollowState* p = (SFollowState*)s->stack;
+	if(s->index == 0)
+	{
+		p->pidr.max = 45;
+		p->pidr.min = -45;
+		p->pidr.Kp = GetVar(V_KP);
+		p->pidr.Ki = GetVar(V_KI);
+		p->pidr.Kd = GetVar(V_KD);
+		p->pidr.error = 0;
+		p->pidr.integral = 0;
+	}
+
+	// Get current target
+	float target = GetVar(V_COURSE);
+	float pos = GetVar(V_HEADING);
+	
+	p->pidr.dt = s->dt;
+	float fAngle = PidCompute(&p->pidr, target, pos);
+	float fSpeed = GetVar(V_SPEED);
+	UpdateCar(fSpeed, fAngle);
+
+	return false;
+}
+
+
 bool Tool(SState* s, int noun0, float value0, int noun1, float value1)
 {
 	if(s->index == 0)

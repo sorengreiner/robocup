@@ -52,7 +52,6 @@ bool BranchLeft(SState* s, int noun0, float value0, int noun1, float value1)
 
 bool BranchRight(SState* s, int noun0, float value0, int noun1, float value1)
 {
-    printf("BranchRight "); 
     return true; 
 }
 
@@ -116,13 +115,15 @@ bool GreaterEqual(SState* s, int noun0, float value0, int noun1, float value1)
 
 bool JunctionLeft(SState* s, int noun0, float value0, int noun1, float value1)
 {
-    return true; 
+    SLineSensor* pLineSensor =  GetLineSensor();
+    return LineSensorJunctionLeft(pLineSensor); 
 }
     
 
 bool JunctionRight(SState* s, int noun0, float value0, int noun1, float value1) 
 { 
-    return true; 
+    SLineSensor* pLineSensor =  GetLineSensor();
+    return LineSensorJunctionRight(pLineSensor); 
 }
 
 
@@ -166,17 +167,15 @@ bool LessEqual(SState* s, int noun0, float value0, int noun1, float value1)
 
 bool Line(SState* s, int noun0, float value0, int noun1, float value1)
 {
-    SLine* pLineSensor =  GetLineSensor();
-    
-	return (pLineSensor->nLeftEdges > 0) || (pLineSensor->nRightEdges > 0);
+    SLineSensor* pLineSensor =  GetLineSensor();
+    return LineSensorAnyLine(pLineSensor);
 }
 
 
 bool NoLine(SState* s, int noun0, float value0, int noun1, float value1)
 {
-    SLine* pLineSensor =  GetLineSensor();
-    
-	return (pLineSensor->nLeftEdges == 0) && (pLineSensor->nRightEdges == 0);
+    SLineSensor* pLineSensor =  GetLineSensor();
+    return LineSensorNoLine(pLineSensor);
 }
 
 

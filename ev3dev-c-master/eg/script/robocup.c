@@ -50,7 +50,7 @@ int leftCenter = -8;
 int rightCenter = 2;
 SCar car;
 SInertialNavigation inertial;
-SLine lineSensor;
+SLineSensor lineSensor;
 
 
 void UpdateGyro();
@@ -181,7 +181,7 @@ bool RobocupInit( void )
 
 	char s[256];
     
-    LineInit(&lineSensor);
+    LineSensorInit(&lineSensor);
     InertialNavigationInit();
 
 	// Detect motors for back wheels
@@ -330,7 +330,7 @@ void UpdateTool(float speed, float position)
 }
 
 
-SLine* GetLineSensor(void)
+SLineSensor* GetLineSensor(void)
 {
     return &lineSensor;
 }
@@ -338,11 +338,15 @@ SLine* GetLineSensor(void)
 
 void UpdateLineSensor(void)
 {
-	int n = get_sensor_bin_data( snLine, lineSensor.data, 8);
+    SLine line;
+    LineInit(&line);
+	int n = get_sensor_bin_data( snLine, line.data, 8);
 	if(n == 8)
 	{
-		uint8_t* p = lineSensor.data;
-		LineAnalyze(&lineSensor, GetVar(V_BLACK), GetVar(V_WHITE), 0.66f);
+		LineAnalyze(&line, GetVar(V_BLACK), GetVar(V_WHITE), 0.66f);
+        line.odometer = GetVar(V_AODOMETER);
+        line.heading = GetVar(V_HEADING);
+        LineSensorPush(&lineSensor, &line);
 //		LineDataPrint(&lineSensor);	
 	}
 }

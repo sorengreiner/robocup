@@ -7,13 +7,13 @@
 
 void LineInit(SLine* pLine)
 {
-   	pLine->n = 0;
-    pLine->p0 = 0.0f;
-	pLine->nLeftEdges = 0;
-	pLine->leftEdge = 0;
-
-	pLine->nRightEdges = 0;
-	pLine->rightEdge = 0;
+   	pLine->nCenter = 0;
+    pLine->center = 0.0f;
+	pLine->nLeft = 0;
+	pLine->left = 0;
+	pLine->nRight = 0;
+	pLine->right = 0;
+    pLine->full = 0;
 }
 
 
@@ -26,15 +26,8 @@ void LinePrint(SLine* pLine)
         printf("%3d ", pLine->data[i]);
     }
     printf("}");
-/*
-    printf("norm{");
-    for(int i = 0; i < POINTS; i++)
-    {
-        printf("%4.2f ", pLine->norm[i]);
-    }
-    printf("}");
-*/
-    printf("l%d:%2.3f c:%2.3f r%d:%2.3f", pLine->nLeftEdges, pLine->leftEdge, pLine->p0, pLine->nRightEdges, pLine->rightEdge);
+
+    printf("l%d:%2.3f c%d:%2.3f r%d:%2.3f odo:%g full:%d", pLine->nLeft, pLine->left, pLine->nCenter, pLine->center, pLine->nRight, pLine->right, pLine->odometer, pLine->full);
 }
 
 void LineDataPrint(SLine* pLine)
@@ -50,27 +43,27 @@ void LineDataPrint(SLine* pLine)
     memset(view, '.', sizeof(view) - 1);
     memset(view + POINTS*5, '-', POINTS*5 - 1);
 
-    if(pLine->nLeftEdges > 0)
+    if(pLine->nLeft > 0)
     {
-        int index = pLine->leftEdge*POINTS*5 + POINTS*5;
+        int index = pLine->left*POINTS*5 + POINTS*5;
         if(index >= 0 && index < 3*POINTS*5 + 2)
         {
             view[index] = 'L';
         }
     }
 
-    if(pLine->nRightEdges > 0)
+    if(pLine->nRight > 0)
     {
-        int index = pLine->rightEdge*POINTS*5 + POINTS*5;
+        int index = pLine->right*POINTS*5 + POINTS*5;
         if(index >= 0 && index < 3*POINTS*5 + 2)
         {
             view[index] = 'R';
         }
     }
 
-    if(pLine->n > 0)
+    if(pLine->nCenter > 0)
     {
-        int index = pLine->p0*POINTS*5 + POINTS*5;
+        int index = pLine->center*POINTS*5 + POINTS*5;
         if(index >= 0 && index < 3*POINTS*5 + 2)
         {
             view[index] = 'C';
@@ -112,8 +105,8 @@ void SearchLeftEdges2(SLine* pLine, float threshold)
 				// crossing found. Compute the weighted x pos
 				float x = (threshold-y0)/(y1-y0);
 
-				pLine->nLeftEdges = 1;
-				pLine->leftEdge = (x + i)/(POINTS-1);
+				pLine->nLeft = 1;
+				pLine->left = (x + i)/(POINTS-1);
 				break;
 			}
 		}
@@ -137,8 +130,8 @@ void SearchRightEdges2(SLine* pLine, float threshold)
 				// crossing found. Compute the weighted x pos
 				float x = (threshold-y0)/(y1-y0);
 
-				pLine->nRightEdges = 1;
-				pLine->rightEdge = (i - x)/(POINTS-1);
+				pLine->nRight = 1;
+				pLine->right = (i - x)/(POINTS-1);
 				break;
 			}
 		}
@@ -169,9 +162,9 @@ void SearchCenter(SLine* pLine, float threshold)
 	}
     if(count > 0)
     {
-        pLine->p0 = p/(POINTS-1);
+        pLine->center = p/(POINTS-1);
     }
-    pLine->n = count;
+    pLine->nCenter = count;
 }
 
 
@@ -192,25 +185,220 @@ void LineAnalyze(SLine* pLine, float black, float white, float threshold)
 		pLine->norm[i] = val;
 	}
 
-    pLine->n = 0;
-    pLine->p0 = 0.0f;
-	pLine->nLeftEdges = 0;
-	pLine->leftEdge = 0;
-	pLine->nRightEdges = 0;
-	pLine->rightEdge = 0;
+    // if 7 or 8 are above threshold we consider the line full
+    int nAbove = 0;
+    for(int i = 0; i < POINTS; i++)
+    {
+        if(pLine->norm[i] > threshold)
+        {
+            nAbove++;
+        }
+    }
+    
+    if(nAbove >= POINTS - 1)
+    {
+        pLine->full = 1;
+    }
+    else
+    {
+        pLine->full = 0;
+    }
+    
+    pLine->nCenter = 0;
+    pLine->center = 0.0f;
+	pLine->nLeft = 0;
+	pLine->left = 0;
+	pLine->nRight = 0;
+	pLine->right = 0;
 
     SearchCenter(pLine, threshold);
 	SearchLeftEdges2(pLine,threshold);
 	SearchRightEdges2(pLine, threshold);
 
-	if(pLine->nLeftEdges && !pLine->nRightEdges)
+	if(pLine->nLeft && !pLine->nRight)
 	{
-		pLine->rightEdge = pLine->leftEdge + LINE_WIDTH;
-		pLine->nRightEdges = 1;
+		pLine->right = pLine->left + LINE_WIDTH;
+		pLine->nRight = 1;
 	}
-	else if(!pLine->nLeftEdges && pLine->nRightEdges)
+	else if(!pLine->nLeft && pLine->nRight)
 	{
-		pLine->leftEdge = pLine->rightEdge - LINE_WIDTH;
-		pLine->nLeftEdges = 1;
+		pLine->left = pLine->right - LINE_WIDTH;
+		pLine->nLeft = 1;
 	}
 }
+
+
+void LineSensorInit(SLineSensor* pLineSensor)
+{
+    pLineSensor->first = 0;
+    pLineSensor->last = 0;
+    pLineSensor->count = 0;
+}
+
+bool LineSensorJunctionLeft(SLineSensor* pLineSensor)
+{
+    // A junction requires the newest line is full and there is a previous left line
+    int n = pLineSensor->count;
+    if(pLineSensor->lines[0].full == 0)
+    {
+        return false;
+    }
+    
+    for(int i = 0; i < n; i++)
+    {
+        SLine* pLine = &pLineSensor->lines[i];
+        if(pLine->nLeft > 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool LineSensorJunctionRight(SLineSensor* pLineSensor)
+{
+    // A junction requires the newest line is full and there is a previous left line
+    int n = pLineSensor->count;
+    if(pLineSensor->lines[0].full == 0)
+    {
+        return false;
+    }
+    
+    for(int i = 0; i < n; i++)
+    {
+        SLine* pLine = &pLineSensor->lines[i];
+        if(pLine->nRight > 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void LineSensorPush(SLineSensor* pLineSensor, SLine* pLine)
+{
+    if(pLineSensor->count > 0)
+    {
+        int n = pLineSensor->count;
+        if(n == LINE_SENSOR_DEPTH)
+        {
+            n = LINE_SENSOR_DEPTH-1;
+        }
+        // move old records
+        for(int i = n - 1; i >= 0; i--)
+        {
+            pLineSensor->lines[i + 1] = pLineSensor->lines[i];
+        }
+    }
+    
+    if(pLineSensor->count < LINE_SENSOR_DEPTH)
+    {
+        pLineSensor->count++;
+    }
+    pLineSensor->lines[0] = *pLine;
+}
+
+bool LineSensorLeft(SLineSensor* pLineSensor, float* pPos)
+{
+    // Search for a record in history with a left edge and return its value
+    int n = pLineSensor->count;
+    for(int i = 0; i < n; i++)
+    {
+        SLine* pLine = &pLineSensor->lines[i];
+        if(pLine->nLeft > 0)
+        {
+            *pPos = pLine->left;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool LineSensorRight(SLineSensor* pLineSensor, float* pPos)
+{
+    // Search for a record in history with a left edge and return its value
+    int n = pLineSensor->count;
+    for(int i = 0; i < n; i++)
+    {
+        SLine* pLine = &pLineSensor->lines[i];
+        if(pLine->nRight > 0)
+        {
+            *pPos = pLine->right;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool LineSensorCenter(SLineSensor* pLineSensor, float* pPos)
+{
+    // Search for a record in history with a left edge and return its value
+    int n = pLineSensor->count;
+    for(int i = 0; i < n; i++)
+    {
+        SLine* pLine = &pLineSensor->lines[i];
+        if(pLine->nCenter > 0)
+        {
+            *pPos = pLine->center;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool LineSensorLineFull(SLineSensor* pLineSensor)
+{
+    if(pLineSensor->lines[0].full == 1)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool LineSensorNoLine(SLineSensor* pLineSensor)
+{
+    // Check if there is no lines back in history
+    int n = pLineSensor->count;
+    for(int i = 0; i < n; i++)
+    {
+        SLine* pLine = &pLineSensor->lines[i];
+        if((pLine->nLeft > 0) || (pLine->nRight > 0 || pLine->nCenter))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool LineSensorAnyLine(SLineSensor* pLineSensor)
+{
+    // Check if there is any lines back in history
+    int n = pLineSensor->count;
+    for(int i = 0; i < n; i++)
+    {
+        SLine* pLine = &pLineSensor->lines[i];
+        if((pLine->nLeft > 0) || (pLine->nRight > 0 || pLine->nCenter))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+void LineSensorPrint(SLineSensor* pLineSensor)
+{
+    int n = pLineSensor->count;
+    printf("linedata count:%d\n", n);
+    
+    for(int i = 0; i < n; i++)
+    {
+        printf("%d: ", i);
+        LinePrint(&pLineSensor->lines[i]);
+        printf("\n");
+    }
+}
+
+
+// 01234
+
+

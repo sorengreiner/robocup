@@ -279,6 +279,54 @@ float LinePosToPhysical(float pos)
 
 int main(int argc, char* argv[])
 {
+    uint8_t leftdata[8] = {20,20,20,30,90,90,90,90};
+    uint8_t fulldata[8] = {90,90,90,90,90,90,90,90};
+
+    SLine line;
+    memcpy(line.data, leftdata, 8);
+    LineAnalyze(&line, 0, 100, 0.66);
+    line.odometer = 0;
+    
+    SLineSensor sensor;
+    LineSensorInit(&sensor);
+    LineSensorPush(&sensor, &line);
+    LineSensorPrint(&sensor);
+    
+    line.odometer = 0.01;
+    LineSensorPush(&sensor, &line);
+    LineSensorPrint(&sensor);
+
+    line.odometer = 0.02;
+    LineSensorPush(&sensor, &line);
+    LineSensorPrint(&sensor);
+
+    line.odometer = 0.03;
+    LineSensorPush(&sensor, &line);
+    LineSensorPrint(&sensor);
+
+    line.odometer = 0.04;
+    LineSensorPush(&sensor, &line);
+    LineSensorPrint(&sensor);
+    printf(" JunctionLeft:%d\n", LineSensorJunctionLeft(&sensor));
+
+    line.odometer = 0.05;
+    LineSensorPush(&sensor, &line);
+    LineSensorPrint(&sensor);
+    printf(" JunctionLeft:%d\n", LineSensorJunctionLeft(&sensor));
+
+    memcpy(line.data, fulldata, 8);
+    LineAnalyze(&line, 0, 100, 0.66);
+    line.odometer = 0.06;
+    LineSensorPush(&sensor, &line);
+    LineSensorPrint(&sensor);
+    printf(" JunctionLeft:%d\n", LineSensorJunctionLeft(&sensor));
+
+    line.odometer = 0.07;
+    LineSensorPush(&sensor, &line);
+    LineSensorPrint(&sensor);
+    printf(" JunctionLeft:%d\n", LineSensorJunctionLeft(&sensor));
+    
+/*    
 	if(argc == 2)
 	{
 		FILE* file = fopen(argv[1], "r");
@@ -321,6 +369,6 @@ int main(int argc, char* argv[])
 			printf("\n");
 	    }
     }
-	
+*/	
     return 0;
 }

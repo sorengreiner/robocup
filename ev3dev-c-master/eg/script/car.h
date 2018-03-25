@@ -37,6 +37,6 @@ void AssignVar(int noun, float value);
 
 float LinePosToPhysical(float pos);
 
-SLine* GetLineSensor(void);
+SLineSensor* GetLineSensor(void);
 
 #endif

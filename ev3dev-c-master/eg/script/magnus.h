@@ -31,9 +31,12 @@ typedef enum
 	V_XPOS,		// X position as eastward value relative to starting point
 	V_YPOS,		// Y position as eastward value relative to starting point
 	V_STEER,	// Steering angle of front wheels
-	V_KP,		// PID controller Kp constant
-	V_KI,		// PID controller Ki constant
-	V_KD,		// PID controller Kd constant
+	V_KP,		// PID controller Kp constant for line follow
+	V_KI,		// PID controller Ki constant for line follow
+	V_KD,		// PID controller Kd constant for line follow
+	V_KPS,		// PID controller Kp constant for straight and turn
+	V_KIS,		// PID controller Ki constant for straight and turn
+	V_KDS,		// PID controller Kd constant for straight and turn
 	V_WHITE,	// Linesensor white level
 	V_BLACK,	// Linesensor black level
 	V_TOOLPOS,	// Tool position [0 to 1]

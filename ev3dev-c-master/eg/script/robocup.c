@@ -343,7 +343,7 @@ void UpdateLineSensor(void)
 	int n = get_sensor_bin_data( snLine, line.data, 8);
 	if(n == 8)
 	{
-		LineAnalyze(&line, GetVar(V_BLACK), GetVar(V_WHITE), 0.66f);
+		LineAnalyze(&line, GetVar(V_BLACK), GetVar(V_WHITE), GetVar(V_THRESHOLD));
         line.odometer = GetVar(V_AODOMETER);
         line.heading = GetVar(V_HEADING);
         LineSensorPush(&lineSensor, &line);

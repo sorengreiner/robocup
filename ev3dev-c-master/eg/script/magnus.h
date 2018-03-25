@@ -39,6 +39,7 @@ typedef enum
 	V_KDS,		// PID controller Kd constant for straight and turn
 	V_WHITE,	// Linesensor white level
 	V_BLACK,	// Linesensor black level
+	V_THRESHOLD,// Linesensor threshold level [0 to 1]
 	V_TOOLPOS,	// Tool position [0 to 1]
     V_TOOLSPEED,// Tool speed (0 to 1)
     V_COURSE,   // Course setting in straight commands (degrees)
@@ -57,13 +58,14 @@ typedef enum
 typedef enum
 {
     A_BACKWARD = 0,
+    A_CIRCLE,
     A_FOLLOW,
+    A_FOLLOWCOURSE,
     A_FOLLOWLEFT,
     A_FOLLOWRIGHT,
     A_FORWARD,
     A_SET,
     A_STOP,
-    A_STRAIGHT,
     A_TURNLEFT,
     A_TURNRIGHT,
     A_WAIT,

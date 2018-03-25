@@ -21,7 +21,7 @@ bool Approximate(SState* s, int noun0, float value0, int noun1, float value1)
 		right = GetVar(noun1);
 	}
 
-	return fabs(left - right) < 0.1; 
+	return fabs(left - right) < 0.5; 
 }
 
 
@@ -40,7 +40,7 @@ bool ApproximateNotEqual(SState* s, int noun0, float value0, int noun1, float va
 		right = GetVar(noun1);
 	}
 
-	return fabs(left - right) > 0.1; 
+	return fabs(left - right) > 0.5; 
 }
 
 

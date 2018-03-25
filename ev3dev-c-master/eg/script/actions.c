@@ -68,7 +68,7 @@ bool FollowTarget(SState* s, ETargetMode eTargetMode)
 }
 
 
-bool Straight(SState* s, float course, float speed) 
+bool Straight(SState* s, float course, float speed, int reverse) 
 { 
 	SFollowState* p = (SFollowState*)s->stack;
 	if(s->index == 0)
@@ -85,7 +85,7 @@ bool Straight(SState* s, float course, float speed)
 	p->pidr.dt = s->dt;
 	float heading = GetVar(V_HEADING);
 	float fAngle = PidCompute(&p->pidr, course, heading);
-	UpdateCar(speed, -fAngle);
+	UpdateCar(speed, -fAngle*reverse);
 	return false;
 }
 
@@ -102,7 +102,7 @@ bool Backward(SState* s, int noun0, float value0, int noun1, float value1)
     }
     float course = GetVar(V_COURSE);
     float speed = GetVar(V_SPEED);
-    return Straight(s, course, -speed);
+    return Straight(s, course, -speed, -1);
 }
 
 
@@ -129,7 +129,7 @@ bool FollowCourse(SState* s, int noun0, float value0, int noun1, float value1)
 { 
     float course = GetVar(V_COURSE);
     float speed = GetVar(V_SPEED);
-    return Straight(s, course, speed);
+    return Straight(s, course, speed, 1);
 }
 
 
@@ -153,7 +153,7 @@ bool Forward(SState* s, int noun0, float value0, int noun1, float value1)
     }
     float course = GetVar(V_COURSE);
     float speed = GetVar(V_SPEED);
-    return Straight(s, course, speed);
+    return Straight(s, course, speed, 1);
 }
 
 
@@ -194,7 +194,7 @@ bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
     
     float course = GetVar(V_COURSE);
     float speed = GetVar(V_SPEED);
-    return Straight(s, course, speed);
+    return Straight(s, course, speed, 1);
 }
 
 
@@ -207,7 +207,7 @@ bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
     
     float course = GetVar(V_COURSE);
     float speed = GetVar(V_SPEED);
-    return Straight(s, course, speed);
+    return Straight(s, course, speed, 1);
 }
 
 

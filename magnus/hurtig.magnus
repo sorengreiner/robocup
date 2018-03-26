@@ -1,5 +1,7 @@
 // Første sving
 set threshold=0.5
+set black=0
+set white=100
 set kp=1
 set ki=0.0
 set kd=0.0
@@ -19,12 +21,12 @@ followleft until junctionleft
 // Kør langsomt når vi nærmer os trappen
 set speed=10
 set odometer=0
-followleft until odometer > 4
+followleft until odometer > 3.30
 
 // Kør indtil forgrening på gulvet
 followright until junctionright
 set odometer=0
-followright until odometer > 0.80
+followright until odometer > 0.60
 stop
 
 // Vent på den anden bil

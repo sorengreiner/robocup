@@ -814,26 +814,31 @@ bool Compile(char* in, SProgram* pProgram)
 		buffer[len + 1] = '#';
 		buffer[len + 2] = ' ';
 		buffer[len + 3] = 0;
-
-		SSequence item;
-        SequenceInit(&item);
-		if(!ParseLine(buffer, &item))
+        if(buffer[0] == '/' && buffer[1] == '/')
         {
-            printf("error parsing program line:%d\n", line);
-            return false;
+            // Line comment
         }
-        
-        SSequence* pSequence = malloc(sizeof(SSequence));
-        *pSequence = item;
-        pSequence->line = line;
-        if(pProgram->pFirst == 0)
+        else
         {
-            pProgram->pFirst = pSequence;
+            SSequence item;
+            SequenceInit(&item);
+            if(!ParseLine(buffer, &item))
+            {
+                printf("error parsing program line:%d\n", line);
+                return false;
+            }
+            
+            SSequence* pSequence = malloc(sizeof(SSequence));
+            *pSequence = item;
+            pSequence->line = line;
+            if(pProgram->pFirst == 0)
+            {
+                pProgram->pFirst = pSequence;
+                pProgram->pLast = pSequence;
+            }
+            pProgram->pLast->pNext = pSequence;
             pProgram->pLast = pSequence;
         }
-        pProgram->pLast->pNext = pSequence;
-        pProgram->pLast = pSequence;
-        
         line++;
 	}
 	return true;

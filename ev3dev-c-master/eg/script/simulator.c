@@ -33,9 +33,9 @@ void sleep_ms(int milliseconds) // cross-platform sleep function
 
 
 
-SLine lineSensor;
+SLineSensor lineSensor;
 
-SLine* GetLineSensor(void)
+SLineSensor* GetLineSensor(void)
 {
     return &lineSensor;
 }
@@ -44,8 +44,10 @@ SLine* GetLineSensor(void)
 void UpdateLineSensor(void)
 {
     uint8_t data[8] = {40,40,60,100,100,100,60,40};
-    memcpy(lineSensor.data, data, 8);
-    LineAnalyze(&lineSensor, GetVar(V_BLACK), GetVar(V_WHITE), 0.66f);
+    SLine line;
+    memcpy(line.data, data, 8);
+    LineAnalyze(&line, GetVar(V_BLACK), GetVar(V_WHITE), GetVar(V_THRESHOLD));
+    LineSensorPush(&lineSensor, &line);
 //    LineDataPrint(&lineSensor);	
 }
 

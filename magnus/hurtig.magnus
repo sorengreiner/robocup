@@ -1,4 +1,70 @@
+// Første sving
+set threshold=70
+set speed=80
+set odometer=0
+followright until odometer > 4
+
+// Sæt farten ned efter guilletine
+set speed=30
+set odometer=0
+followleft until odometer > 3
+
+// Kør op ad rampen indtil forgrening
+set speed=20
+followleft until junctionleft
+
+// Kør langsomt når vi nærmer os trappen
 set speed=10
 set odometer=0
-straight course=0 until odometer > 1
+followleft until odometer > 4
 
+// Kør indtil forgrening på gulvet
+followright until junctionright
+set odometer=0
+followright until odometer > 0.80
+stop
+
+// Vent på den anden bil
+wait until prox < 20
+wait time=0 until time > 3 and prox > 30
+
+// Take right junction
+set odometer=0
+turnright angle=90 until odometer > 0.3
+
+// Continue until first junction and pass it
+followleft until junctionleft
+followleft odometer=0 until odometer > 1
+
+// Continue until next junction and stop
+followleft until junctionleft
+stop
+
+// Get on racing track
+backward speed=10 odometer=0 until odometer < 0.15
+turnright odometer=0 until odometer > 1
+
+followright odometer=0 until odometer > 4
+followright until prox < 20
+stop
+wait until prox > 30
+
+// pass the axegate
+set speed=20
+followright odometer=0 until odometer > 1.5
+
+// Get ready for race
+set speed=90
+set odometer=0
+followright until odometer > 5
+
+// Slow down in curve
+set speed=20
+followleft until junctionleft
+
+followleft odometer=0 until odometer > 0.1
+
+// Go to goal
+followleft until prox < 20
+set speed=10
+follow

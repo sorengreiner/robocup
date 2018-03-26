@@ -347,7 +347,7 @@ void UpdateLineSensor(void)
         line.odometer = GetVar(V_AODOMETER);
         line.heading = GetVar(V_HEADING);
         LineSensorPush(&lineSensor, &line);
-//		LineDataPrint(&lineSensor);	
+//		LineDataPrint(&lineSensor.lines[0]);	
 	}
 }
 

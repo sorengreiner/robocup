@@ -1,5 +1,7 @@
 set odometer=0
-set threshold=0.7
+set threshold=0.6
+set white=100
+set black=0
 followright speed=35 until odometer > 4.5
 set speed=20
 follow odometer=0 until odometer > 4
@@ -13,10 +15,9 @@ set odometer=0
 followleft until odometer > 1.1
 set odometer=0
 set speed=60
-forward until odometer > 1.3
+forward until odometer > 1.2
 set odometer=0
 set speed=20
-followright until prox < 10
-forward
+followright
 stop
 

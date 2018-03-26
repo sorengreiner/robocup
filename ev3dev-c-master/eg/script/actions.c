@@ -73,8 +73,8 @@ bool Straight(SState* s, float course, float speed, int reverse)
 	SFollowState* p = (SFollowState*)s->stack;
 	if(s->index == 0)
 	{
-		p->pidr.max = 35;
-		p->pidr.min = -35;
+		p->pidr.max = 30;
+		p->pidr.min = -30;
 		p->pidr.Kp = GetVar(V_KPS);
 		p->pidr.Ki = GetVar(V_KIS);
 		p->pidr.Kd = GetVar(V_KDS);

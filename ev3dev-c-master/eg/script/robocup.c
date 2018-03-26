@@ -77,7 +77,7 @@ float Clamp(float value, float min, float max)
 
 float LinePosToPhysical(float pos)
 {
-	return (LINESENSOR_WIDTH_MM*pos - LINESENSOR_WIDTH_MM/2);
+	return -(LINESENSOR_WIDTH_MM*pos - LINESENSOR_WIDTH_MM/2);
 }
 
 

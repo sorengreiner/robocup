@@ -1,11 +1,14 @@
 // Første sving
-set threshold=70
-set speed=80
+set threshold=0.5
+set kp=1
+set ki=0.0
+set kd=0.0
+set speed=35
 set odometer=0
-followright until odometer > 4
+followright until odometer > 4.5
 
 // Sæt farten ned efter guilletine
-set speed=30
+set speed=20
 set odometer=0
 followleft until odometer > 3
 

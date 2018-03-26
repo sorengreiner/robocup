@@ -1,14 +1,22 @@
 set odometer=0
+set threshold=0.7
 followright speed=35 until odometer > 4.5
 set speed=20
-followleft odometer=0 until odometer > 5
-followleft until junctionleft
+follow odometer=0 until odometer > 4
 set odometer=0
-followright until odometer > 2
+followleft until odometer > 1
+followleft until junctionleft
 set speed=10
 set odometer=0
-followright until odometer > 2
+followright until odometer > 1.2
+set odometer=0
+followleft until odometer > 1.1
+set odometer=0
+set speed=60
+forward until odometer > 1.3
 set odometer=0
 set speed=20
 followright until prox < 10
+forward
 stop
+

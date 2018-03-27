@@ -9,32 +9,19 @@ followright until junctionright
 stop
 
 // Tag højre forgrening
+followright odometer=0 until odometer > 0.2
 set odometer=0
-forward speed=10 until odometer > 0.1
+turnright angle=90 speed=10 until odometer > 0.65
 set odometer=0
-turnleft angle=45 speed=-10 until odometer < -0.2
-set odometer=0
-turnright speed=10 angle=45 until odometer > 0.2
+backward speed=10 odometer=0 until odometer < -0.3
 
 stop
 wait time=0 until time > 1
 
-// Find næste T-kryds
-followright until noline
-
-// Tag højre forgrening i T-kryds
-set odometer=0
-forward speed=10 until odometer > 0.1
-set odometer=0
-turnleft angle=45 speed=-10 until odometer < -0.2
-set odometer=0
-turnright speed=10 angle=45 until odometer > 0.2
-
-stop
-wait time=0 until time > 1
+turnright angle=90 speed=10 until odometer > 0.5
 
 // Kør indtil T-kryds ved vippe
-followright speed=20 until junctionright
-followright odometer=0 speed=20 until odometer > 0.2
+followright speed=20 odometer=0 until odometer > 3.60
+followright until junctionright
 stop
 

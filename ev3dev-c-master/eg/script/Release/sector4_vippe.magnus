@@ -1,0 +1,19 @@
+// Grundopsætning
+set threshold=0.7
+set white=100
+set black=0
+
+// Find venstre forgrening efter trappe
+set speed=20
+followright until junctionright
+stop
+
+backward speed=10 odometer=0 until odometer < -0.2
+turnright angle=90 odometer=0 until odometer > 0.5
+
+stop
+wait time=0 until time > 2
+
+followright odometer=0 until odometer > 1.0
+forward odometer=0 speed=60 until odometer > 1.2
+stop

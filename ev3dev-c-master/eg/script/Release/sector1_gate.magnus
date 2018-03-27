@@ -4,8 +4,10 @@ set white=100
 set black=0
 
 // sector1 gate
+set kp=0.7
 set odometer=0
 followright speed=50 until odometer > 2
+set kp=1
 followright speed=35 until odometer > 4.5
 set speed=20
 follow odometer=0 until odometer > 4

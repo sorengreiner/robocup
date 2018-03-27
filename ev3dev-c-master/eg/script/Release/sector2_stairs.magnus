@@ -10,42 +10,43 @@ followleft until junctionleft
 set odometer=0
 
 // FÃ¸rste trin
-followleft speed=20 until noline
+followleft speed=20 until odometer > 1.55
 stop
-wait time=0 until time > 1
-forward speed=10 odometer=0 until odometer > 0.3
-backward odometer=0 until odometer < 0.3
+wait time=0 until time > 2
+forward speed=10 odometer=0 until odometer > 0.25
+backward odometer=0 until odometer < -0.2
 
 // Andet trin
-followleft speed=10 until noline
+followleft odometer=0 speed=10 until odometer > 0.1
 stop
 wait time=0 until time > 1
-forward speed=10 odometer=0 until odometer > 0.3
-backward odometer=0 until odometer < -0.3
+forward speed=10 odometer=0 until odometer > 0.25
+backward odometer=0 until odometer < -0.2
 
 // Tredje trin
-followleft speed=10 until noline
+followleft speed=10 odometer=0 until odometer > 0.1
 stop
 wait time=0 until time > 1
-forward speed=10 odometer=0 until odometer > 0.3
-backward odometer=0 until odometer < -0.3
+forward speed=10 odometer=0 until odometer > 0.25
+backward odometer=0 until odometer < -0.2
 
 // Fjerde trin
-followleft speed=10 until noline
+followleft speed=10 odometer=0 until odometer > 0.1
 stop
 wait time=0 until time > 1
-forward speed=10 odometer=0 until odometer > 0.3
-backward odometer=0 until odometer < -0.3
+forward speed=10 odometer=0 until odometer > 0.25
+backward odometer=0 until odometer < -0.2
 
 // Femte trin
-followleft speed=10 until noline
+followleft speed=10 odometer=0 until odometer > 0.1
 stop
 wait time=0 until time > 1
-forward speed=10 odometer=0 until odometer > 0.3
-backward odometer=0 until odometer < -0.3
+forward speed=10 odometer=0 until odometer > 0.25
+backward odometer=0 until odometer < -0.2
 
-// Find venstre forgrening efter trappe
+// Find hÃjre forgrening efter trappe
 set speed=20
+followright odometer=0 until odometer > 0.15
 followright until junctionright
 stop
 

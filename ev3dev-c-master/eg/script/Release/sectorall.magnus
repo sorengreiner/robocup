@@ -1,0 +1,168 @@
+// Sector1
+
+// Grundopsætning
+set threshold=0.7
+set white=100
+set black=0
+
+// sector1 gate
+set kp=0.7
+set odometer=0
+followright speed=50 until odometer > 2
+set kp=1
+followright speed=35 until odometer > 4.5
+set speed=20
+follow odometer=0 until odometer > 4
+set odometer=0
+followleft until odometer > 1
+followleft until junctionleft
+stop
+
+// Sector2
+
+// Grundopsætning
+set threshold=0.7
+set white=100
+set black=0
+
+// Første trin
+followleft speed=20 until odometer > 1.55
+stop
+wait time=0 until time > 2
+forward speed=10 odometer=0 until odometer > 0.25
+backward odometer=0 until odometer < -0.2
+
+// Andet trin
+followleft odometer=0 speed=10 until odometer > 0.1
+stop
+wait time=0 until time > 1
+forward speed=10 odometer=0 until odometer > 0.25
+backward odometer=0 until odometer < -0.2
+
+// Tredje trin
+followleft speed=10 odometer=0 until odometer > 0.1
+stop
+wait time=0 until time > 1
+forward speed=10 odometer=0 until odometer > 0.25
+backward odometer=0 until odometer < -0.2
+
+// Fjerde trin
+followleft speed=10 odometer=0 until odometer > 0.1
+stop
+wait time=0 until time > 1
+forward speed=10 odometer=0 until odometer > 0.25
+backward odometer=0 until odometer < -0.2
+
+// Femte trin
+followleft speed=10 odometer=0 until odometer > 0.1
+stop
+wait time=0 until time > 1
+forward speed=10 odometer=0 until odometer > 0.25
+backward odometer=0 until odometer < -0.2
+
+// Find hĪre forgrening efter trappe
+set speed=20
+followright odometer=0 until odometer > 0.15
+followright until junctionright
+stop
+
+
+// Sector 3
+
+// Grundopsætning
+set threshold=0.7
+set white=100
+set black=0
+
+stop
+
+// Tag højre forgrening
+followright odometer=0 until odometer > 0.2
+set odometer=0
+turnright angle=90 speed=10 until odometer > 0.65
+set odometer=0
+backward speed=10 odometer=0 until odometer < -0.3
+
+stop
+wait time=0 until time > 1
+
+turnright angle=90 speed=10 until odometer > 0.5
+
+// Kør indtil T-kryds ved vippe
+followright speed=20 odometer=0 until odometer > 3.60
+followright until junctionright
+stop
+
+// Sector 4
+
+// Grundopsætning
+set threshold=0.7
+set white=100
+set black=0
+
+// Find venstre forgrening efter trappe
+stop
+
+backward speed=10 odometer=0 until odometer < -0.2
+turnright angle=90 odometer=0 until odometer > 0.5
+
+stop
+wait time=0 until time > 2
+
+followright odometer=0 until odometer > 1.0
+forward odometer=0 speed=60 until odometer > 1.2
+stop
+
+// Sector 5
+// Grundopsætning
+set threshold=0.8
+set white=100
+set black=0
+
+forward speed=10 odometer=0 until odometer > 0.1
+stop
+wait until prox < 60
+wait time=0 until time > 1
+wait until prox > 20
+
+forward speed=30 until line
+backward speed=30 odometer=0 until odometer < -0.2
+turnright angle=90 odometer=0 until odometer > 0.8
+set speed=40
+set kp=0.6
+followleft odometer=0 until odometer > 3.0
+set speed=35
+set kp=0.7
+followleft odometer=0 until odometer > 3.0
+set speed=20
+followright odometer=0 until odometer > 0.3
+set speed=30
+followright until junctionright
+backward speed=20 odometer=0 until odometer < -0.2
+turnright angle=90 odometer=0 until odometer > 0.8
+followright odometer=0 until odometer > 3.2
+stop
+
+// Grundopsætning
+set threshold=0.8
+set white=100
+set black=0
+
+stop
+wait until prox < 60
+wait time=0 until time > 0.2
+wait until prox > 40
+wait time=0 until time > 4.5
+set kp=0.6
+followright speed=45 odometer=0 until odometer > 0.8
+set kp=0.9
+followright speed=20 odometer=0 until odometer > 0.7
+set kp=0.4
+set speed=60
+followright odometer=0 until odometer > 6
+set speed=30
+set kp=0.8
+followright odometer=0 until odometer > 5
+stop
+
+

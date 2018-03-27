@@ -1,0 +1,40 @@
+// Grundopsætning
+set threshold=0.7
+set white=100
+set black=0
+
+// Find venstre forgrening efter trappe
+set speed=20
+followright until junctionright
+stop
+
+// Tag højre forgrening
+set odometer=0
+forward speed=10 until odometer > 0.1
+set odometer=0
+turnleft angle=45 speed=-10 until odometer < -0.2
+set odometer=0
+turnright speed=10 angle=45 until odometer > 0.2
+
+stop
+wait time=0 until time > 1
+
+// Find næste T-kryds
+followright until noline
+
+// Tag højre forgrening i T-kryds
+set odometer=0
+forward speed=10 until odometer > 0.1
+set odometer=0
+turnleft angle=45 speed=-10 until odometer < -0.2
+set odometer=0
+turnright speed=10 angle=45 until odometer > 0.2
+
+stop
+wait time=0 until time > 1
+
+// Kør indtil T-kryds ved vippe
+followright speed=20 until junctionright
+followright odometer=0 speed=20 until odometer > 0.2
+stop
+

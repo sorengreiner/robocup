@@ -1,0 +1,51 @@
+// Grundopsætning
+set threshold=0.7
+set white=100
+set black=0
+
+// Kør til første trin
+set speed=20
+set odometer=0
+followleft until junctionleft
+set odometer=0
+
+// Første trin
+followleft speed=20 until noline
+stop
+wait time=0 until time > 1
+forward speed=10 odometer=0 until odometer > 0.3
+backward odometer=0 until odometer < 0.3
+
+// Andet trin
+followleft speed=10 until noline
+stop
+wait time=0 until time > 1
+forward speed=10 odometer=0 until odometer > 0.3
+backward odometer=0 until odometer < -0.3
+
+// Tredje trin
+followleft speed=10 until noline
+stop
+wait time=0 until time > 1
+forward speed=10 odometer=0 until odometer > 0.3
+backward odometer=0 until odometer < -0.3
+
+// Fjerde trin
+followleft speed=10 until noline
+stop
+wait time=0 until time > 1
+forward speed=10 odometer=0 until odometer > 0.3
+backward odometer=0 until odometer < -0.3
+
+// Femte trin
+followleft speed=10 until noline
+stop
+wait time=0 until time > 1
+forward speed=10 odometer=0 until odometer > 0.3
+backward odometer=0 until odometer < -0.3
+
+// Find venstre forgrening efter trappe
+set speed=20
+followright until junctionright
+stop
+

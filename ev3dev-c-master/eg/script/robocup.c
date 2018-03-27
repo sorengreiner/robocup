@@ -77,7 +77,7 @@ float Clamp(float value, float min, float max)
 
 float LinePosToPhysical(float pos)
 {
-	return -(LINESENSOR_WIDTH_MM*pos - LINESENSOR_WIDTH_MM/2);
+	return (LINESENSOR_WIDTH_MM*pos - LINESENSOR_WIDTH_MM/2);
 }
 
 
@@ -238,10 +238,10 @@ bool RobocupInit( void )
 	printf("%s Detecting servo battery\n", bDetectServoBatteryLevel ? "[  OK  ]" : "[FAILED]");
 
 	bool bDetectProxSensor = false;
-	if ( ev3_search_sensor( LEGO_EV3_IR, &snProx, 0 )) 
+	if ( ev3_search_sensor( LEGO_EV3_US, &snProx, 0 )) 
 	{
 		bDetectProxSensor = true;
-		set_sensor_mode_inx( snProx, LEGO_EV3_IR_IR_PROX ); 
+//		set_sensor_mode_inx( snProx, LEGO_EV3_IR_IR_PROX ); 
 	}
 	printf("%s Detecting proximity sensor\n", bDetectProxSensor ? "[  OK  ]" : "[FAILED]");
 
@@ -357,7 +357,7 @@ void UpdateProximitySensor(void)
 	float value;
 	if(get_sensor_value0(snProx, &value) > 0)
 	{
-        SetVar(V_PROX, value);
+        SetVar(V_PROX, value/10);
 //	printf("prox:%g\n", value);
 	}
 }

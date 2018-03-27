@@ -1,0 +1,29 @@
+// Grundopsætning
+set threshold=0.8
+set white=100
+set black=0
+
+forward speed=10 odometer=0 until odometer > 0.1
+stop
+wait until prox < 60
+wait time=0 until time > 1
+wait until prox > 20
+
+forward speed=30 until line
+backward speed=30 odometer=0 until odometer < -0.2
+turnright angle=90 odometer=0 until odometer > 0.8
+set speed=40
+set kp=0.6
+followleft odometer=0 until odometer > 3.0
+set speed=35
+set kp=0.7
+followleft odometer=0 until odometer > 3.0
+set speed=20
+followright odometer=0 until odometer > 0.3
+set speed=30
+followright until junctionright
+backward speed=20 odometer=0 until odometer < -0.2
+turnright angle=90 odometer=0 until odometer > 0.8
+followright odometer=0 until odometer > 3.2
+stop
+

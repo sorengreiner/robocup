@@ -68,29 +68,34 @@ bool FollowTarget(SState* s, ETargetMode eTargetMode)
 }
 
 
-bool Straight(SState* s, float course, float speed, int reverse) 
+bool Straight(SState* s, float course, float speed) 
 { 
-	SFollowState* p = (SFollowState*)s->stack;
-	if(s->index == 0)
-	{
+    SFollowState* p = (SFollowState*)s->stack;
+    if(s->index == 0)
+    {
         // The minimum turning radius determines the limits on the wheel angle in the PID regulator
         float radius = GetVar(V_RADIUS);
         float fCarLength = GetCar()->fCarLength/1000.0;  // Car length in m
         float fAngleLimit = 180.0*atan(fCarLength/fabs(radius))/M_PI;
-		p->pidr.max = fAngleLimit;
-		p->pidr.min = -fAngleLimit;
-		p->pidr.Kp = GetVar(V_KPS);
-		p->pidr.Ki = GetVar(V_KIS);
-		p->pidr.Kd = GetVar(V_KDS);
-		p->pidr.error = 0;
-		p->pidr.integral = 0;
-	}
+        p->pidr.max = fAngleLimit;
+        p->pidr.min = -fAngleLimit;
+        p->pidr.Kp = GetVar(V_KPS);
+        p->pidr.Ki = GetVar(V_KIS);
+        p->pidr.Kd = GetVar(V_KDS);
+        p->pidr.error = 0;
+        p->pidr.integral = 0;
+    }
 	
-	p->pidr.dt = s->dt;
-	float heading = GetVar(V_HEADING);
-	float fAngle = PidCompute(&p->pidr, course, heading);
-	UpdateCar(speed, -fAngle*reverse);
-	return false;
+    p->pidr.dt = s->dt;
+    float heading = GetVar(V_HEADING);
+    float fAngle = PidCompute(&p->pidr, course, heading);
+    int reverse = 1;
+    if(speed < 0)
+    {
+        reverse = -1;
+    }
+    UpdateCar(speed, -fAngle*reverse);
+    return false;
 }
 
 
@@ -106,7 +111,7 @@ bool Backward(SState* s, int noun0, float value0, int noun1, float value1)
     }
     float course = GetVar(V_COURSE);
     float speed = GetVar(V_SPEED);
-    return Straight(s, course, -speed, -1);
+    return Straight(s, course, -speed);
 }
 
 
@@ -133,7 +138,7 @@ bool FollowCourse(SState* s, int noun0, float value0, int noun1, float value1)
 { 
     float course = GetVar(V_COURSE);
     float speed = GetVar(V_SPEED);
-    return Straight(s, course, speed, 1);
+    return Straight(s, course, speed);
 }
 
 
@@ -157,7 +162,7 @@ bool Forward(SState* s, int noun0, float value0, int noun1, float value1)
     }
     float course = GetVar(V_COURSE);
     float speed = GetVar(V_SPEED);
-    return Straight(s, course, speed, 1);
+    return Straight(s, course, speed);
 }
 
 
@@ -221,39 +226,53 @@ bool Stop(SState* s, int noun0, float value0, int noun1, float value1)
 
 bool Tool(SState* s, int noun0, float value0, int noun1, float value1)
 {
-	if(s->index == 0)
-	{
-		float fToolPos = GetVar(V_TOOLPOS);
+    if(s->index == 0)
+    {
+        float fToolPos = GetVar(V_TOOLPOS);
         float fToolSpeed = GetVar(V_TOOLSPEED);
-		UpdateTool(fToolSpeed, fToolPos);
-	}
-	return true;
+        UpdateTool(fToolSpeed, fToolPos);
+    }
+    return true;
 }
 
 
 bool TurnLeft(SState* s, int noun0, float value0, int noun1, float value1)
 {
+    float speed = GetVar(V_SPEED);
     if(s->index == 0)
     {
-        SetVar(V_COURSE, GetVar(V_HEADING) - GetVar(V_ANGLE));
+        if(speed > 0)
+        {
+            SetVar(V_COURSE, GetVar(V_HEADING) - GetVar(V_ANGLE));
+        }
+        else
+        {
+            SetVar(V_COURSE, GetVar(V_HEADING) + GetVar(V_ANGLE));
+        }
     }
     
     float course = GetVar(V_COURSE);
-    float speed = GetVar(V_SPEED);
-    return Straight(s, course, speed, 1);
+    return Straight(s, course, speed);
 }
 
 
 bool TurnRight(SState* s, int noun0, float value0, int noun1, float value1)
 {
+    float speed = GetVar(V_SPEED);
     if(s->index == 0)
     {
-        SetVar(V_COURSE, GetVar(V_HEADING) + GetVar(V_ANGLE));
+        if(speed > 0)
+        {
+            SetVar(V_COURSE, GetVar(V_HEADING) + GetVar(V_ANGLE));
+        }
+        else
+        {
+            SetVar(V_COURSE, GetVar(V_HEADING) - GetVar(V_ANGLE));
+        }
     }
     
     float course = GetVar(V_COURSE);
-    float speed = GetVar(V_SPEED);
-    return Straight(s, course, speed, 1);
+    return Straight(s, course, speed);
 }
 
 

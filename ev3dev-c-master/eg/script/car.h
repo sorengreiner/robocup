@@ -29,11 +29,15 @@ typedef struct
 } SCar;
 
 
-
+SCar* GetCar(void);
 void UpdateCar(float speed, float angle);
 void UpdateTool(float speed, float position);
 void UpdateVars(float delta);
 void AssignVar(int noun, float value);
+void GyroModeCal(void);
+void GyroModeRate(void);
+void GyroModeAngle(void);
+
 
 float LinePosToPhysical(float pos);
 

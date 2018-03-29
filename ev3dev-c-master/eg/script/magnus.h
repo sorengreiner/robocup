@@ -64,6 +64,7 @@ typedef enum
     A_FOLLOWLEFT,
     A_FOLLOWRIGHT,
     A_FORWARD,
+    A_GYRORESET,
     A_SET,
     A_STOP,
     A_TURNLEFT,

@@ -121,6 +121,7 @@ SActionItem g_Actions[NUM_ACTIONS] =
 	{"followleft", 		FollowLeft},
 	{"followright", 	FollowRight},
    	{"forward", 		Forward},
+   	{"gyroreset", 		GyroReset},
 	{"set", 			Set},
 	{"stop", 			Stop},
 	{"turnleft", 		TurnLeft},

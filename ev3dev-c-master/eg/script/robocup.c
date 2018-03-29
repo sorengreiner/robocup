@@ -57,6 +57,11 @@ void UpdateGyro();
 void InertialNavigationInit(void);
 void UpdateProximitySensor(void);
 
+SCar* GetCar(void)
+{
+    return &car;
+}
+
 //-----------------------------------------------------------------------------
 // Conversion
 //-----------------------------------------------------------------------------
@@ -173,12 +178,15 @@ void CarPrint(const SCar* pCar)
 }
 
 
+#define DEFAULT_TURNANGLE (30.0)
+
 bool RobocupInit( void )
 {
 	car.fCarLength = 208;
 	car.fCarWidth = 143.46;
 	car.fBackWidth = 180.0;
-
+    SetVar(V_RADIUS, (car.fCarLength/1000.0)/tan(DEFAULT_TURNANGLE*M_PI/180.0));
+    
 	char s[256];
     
     LineSensorInit(&lineSensor);
@@ -389,6 +397,21 @@ void UpdateGyro(void)
 	{
 		inertial.yaw = value*360.0/365.0;
 	}
+}
+
+void GyroModeCal(void)
+{
+    set_sensor_mode_inx( snGyro, LEGO_EV3_GYRO_GYRO_CAL );
+}
+
+void GyroModeRate(void)
+{
+    set_sensor_mode_inx( snGyro, LEGO_EV3_GYRO_GYRO_RATE );
+}
+
+void GyroModeAngle(void)
+{
+	set_sensor_mode_inx( snGyro, LEGO_EV3_GYRO_GYRO_ANG ); 
 }
 
 //-----------------------------------------------------------------------------

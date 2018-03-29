@@ -3,7 +3,7 @@
 #include "car.h"
 
 #include <stdio.h>
-
+#include <math.h>
 
 
 
@@ -73,8 +73,12 @@ bool Straight(SState* s, float course, float speed, int reverse)
 	SFollowState* p = (SFollowState*)s->stack;
 	if(s->index == 0)
 	{
-		p->pidr.max = 30;
-		p->pidr.min = -30;
+        // The minimum turning radius determines the limits on the wheel angle in the PID regulator
+        float radius = GetVar(V_RADIUS);
+        float fCarLength = GetCar()->fCarLength/1000.0;  // Car length in m
+        float fAngleLimit = 180.0*atan(fCarLength/fabs(radius))/M_PI;
+		p->pidr.max = fAngleLimit;
+		p->pidr.min = -fAngleLimit;
 		p->pidr.Kp = GetVar(V_KPS);
 		p->pidr.Ki = GetVar(V_KIS);
 		p->pidr.Kd = GetVar(V_KDS);
@@ -147,13 +151,55 @@ bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1)
 
 bool Forward(SState* s, int noun0, float value0, int noun1, float value1) 
 {
-   if(s->index == 0)
+    if(s->index == 0)
     {
         SetVar(V_COURSE, GetVar(V_HEADING));
     }
     float course = GetVar(V_COURSE);
     float speed = GetVar(V_SPEED);
     return Straight(s, course, speed, 1);
+}
+
+
+bool GyroReset(SState* s, int noun0, float value0, int noun1, float value1)
+{
+    SGyroResetState* p = (SGyroResetState*)s->stack;
+    if(s->index == 0)
+    {
+        p->eGyroState = GYROSTATE_STEP1;
+        p->fTime = GetVar(V_TIME);
+    }
+    
+    float fTime = GetVar(V_TIME);
+    switch(p->eGyroState)
+    {
+        case GYROSTATE_STEP1:
+            // Wait until car is still before starting calibration
+            if(fTime > p->fTime + 1.0)
+            {
+                GyroModeCal();
+                p->eGyroState = GYROSTATE_STEP2;
+                p->fTime = GetVar(V_TIME);
+            }
+        break;
+        case GYROSTATE_STEP2:
+            
+            if(fTime > p->fTime + 4.0)
+            {
+                GyroModeAngle();
+                p->eGyroState = GYROSTATE_STEP3;
+                p->fTime = GetVar(V_TIME);
+            }
+        break;
+        case GYROSTATE_STEP3:
+            if(fTime > p->fTime + 1.0)
+            {
+                return true;
+            }
+        break;
+    }
+    
+    return false;
 }
 
 

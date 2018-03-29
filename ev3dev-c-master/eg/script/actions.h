@@ -27,6 +27,20 @@ typedef struct
 } STurnState;
 
 
+typedef enum
+{
+    GYROSTATE_STEP1 = 0,
+    GYROSTATE_STEP2,
+    GYROSTATE_STEP3
+} EGyroState;
+
+typedef struct
+{
+    EGyroState eGyroState;
+    float fTime;
+} SGyroResetState;
+
+
 // Action functions
 bool Backward(SState* s, int noun0, float value0, int noun1, float value1);
 bool Circle(SState* s, int noun0, float value0, int noun1, float value1);
@@ -35,6 +49,7 @@ bool FollowCourse(SState* s, int noun0, float value0, int noun1, float value1);
 bool FollowLeft(SState* s, int noun0, float value0, int noun1, float value1);
 bool FollowRight(SState* s, int noun0, float value0, int noun1, float value1);
 bool Forward(SState* s, int noun0, float value0, int noun1, float value1);
+bool GyroReset(SState* s, int noun0, float value0, int noun1, float value1);
 bool Set(SState* s, int noun0, float value0, int noun1, float value1);
 bool Stop(SState* s, int noun0, float value0, int noun1, float value1);
 bool Tool(SState* s, int noun0, float value0, int noun1, float value1);  

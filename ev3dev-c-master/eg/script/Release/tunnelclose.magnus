@@ -1,0 +1,38 @@
+set radius=0.37
+set speed=20
+set kps=2
+gyroreset
+turnright angle=180 odometer=0 until odometer > 1.4
+turnleft angle=90 odometer=0 until odometer > 0.5
+set course=90
+followcourse speed=-20 odometer=0 until odometer < -0.3
+set speed=20
+followcourse course=0 odometer=0 until odometer > 0.7
+stop
+tool toolpos=1
+wait time=0 until time > 5
+set odometer=0
+followcourse course=-90 speed=-10 until odometer < -0.7
+stop
+tool toolpos=0.9
+wait time=0 until time > 3
+set speed=20
+followcourse course=0 odometer=0 until odometer > 0.7
+stop
+tool toolpos=1
+wait time=0 until time > 1
+followcourse course=0 odometer=0 until odometer > 0.1
+stop
+tool toolpos=0
+wait time=0 until time > 5
+followcourse course=-90 until line
+set odometer=0
+followcourse course=-90 speed=-20 until odometer < -0.13
+set odometer=0
+set speed=20
+set radius=0.4
+turnright angle=90 until odometer > 0.6
+followright odometer=0 until odometer > 0.3
+stop
+
+

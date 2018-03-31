@@ -1,0 +1,25 @@
+set black=0
+set white=100
+set threshold=0.50
+set speed=20
+set kp=0.5
+followright until junctionright
+stop
+gyroreset
+set radius=0.40
+set speed=30
+set kps=2
+forward odometer=20 until odometer > 0.2
+followcourse course=90 odometer=0 until odometer > 0.83
+stop
+wait time=0 until time > 0.5
+set speed=20
+backward odometer=0 until odometer < -0.60
+stop
+wait time=0 until time > 0.5
+set radius=0.4
+set speed=30
+followcourse course=180 odometer=0 until odometer > 1
+set kp=0.5
+followright odometer=0 until odometer > 0.3
+stop

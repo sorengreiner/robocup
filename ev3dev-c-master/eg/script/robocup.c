@@ -125,7 +125,7 @@ int PositionToToolSp(float position)
 		position = 1.0;
 	}
 
-	int sp = (int)(-position*380);
+	int sp = (int)(-position*400);
 	return sp;
 }
 

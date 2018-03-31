@@ -1,11 +1,8 @@
 follow
 follow speed=10
-follow speed=10 angle=90
-follow speed=10 angle=90 until
-follow speed=10 angle=90 until odometer
-follow speed=10 angle=90 until odometer > 
-follow speed=10 angle=90 until odometer > 0.25
-follow speed=10 angle=90 until odometer > 0.25 and 
+follow speed=10 angle=0
+follow speed=10 angle=90 until line
+follow speed=10 angle=90 until odometer > 0 
+follow speed=10 angle=90 until odometer > 0.25 and line
+follow speed=10 angle=90 until line and odometer > 0.25
 follow speed=10 angle=90 until odometer > 0.25 and junctionright
-follow speed=10 angle=90 until odometer > 0.25 and junctionright 6
-follow speed=10 angle=90 until odometer > 0.25 and junctionright 6 3

@@ -16,6 +16,7 @@
 #include <unistd.h> // for usleep
 #endif
 
+SCar car;
 
 void sleep_ms(int milliseconds) // cross-platform sleep function
 {
@@ -32,6 +33,18 @@ void sleep_ms(int milliseconds) // cross-platform sleep function
 }
 
 
+void GyroModeCal(void)
+{
+}
+
+void GyroModeRate(void)
+{
+}
+
+void GyroModeAngle(void)
+{
+}
+
 
 SLineSensor lineSensor;
 
@@ -40,6 +53,10 @@ SLineSensor* GetLineSensor(void)
     return &lineSensor;
 }
 
+SCar* GetCar(void)
+{
+    return &car;
+}  
 
 void UpdateLineSensor(void)
 {
@@ -126,6 +143,7 @@ int main(int argc, char* argv[])
         SProgram program;
 		if(Compile(p, &program))
         {
+            PrintProgram(&program);
             // Run program
             RunProgram(&program);
             

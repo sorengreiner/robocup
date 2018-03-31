@@ -13,8 +13,8 @@ bool FollowTarget(SState* s, ETargetMode eTargetMode)
 	if(s->index == 0)
 	{
 		p->fLastLinePos = 0.0f;
-		p->pidr.max = 50;
-		p->pidr.min = -50;
+		p->pidr.max = GetVar(V_KLIMIT);
+		p->pidr.min = -GetVar(V_KLIMIT);
 		p->pidr.Kp = GetVar(V_KP);
 		p->pidr.Ki = GetVar(V_KI);
 		p->pidr.Kd = GetVar(V_KD);

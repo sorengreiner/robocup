@@ -34,6 +34,7 @@ typedef enum
 	V_KP,		// PID controller Kp constant for line follow
 	V_KI,		// PID controller Ki constant for line follow
 	V_KD,		// PID controller Kd constant for line follow
+    V_KLIMIT,   // PID controller output limit for line follow
 	V_KPS,		// PID controller Kp constant for straight and turn
 	V_KIS,		// PID controller Ki constant for straight and turn
 	V_KDS,		// PID controller Kd constant for straight and turn
@@ -44,6 +45,12 @@ typedef enum
     V_TOOLSPEED,// Tool speed (0 to 1)
     V_COURSE,   // Course setting in straight commands (degrees)
     V_PROX,     // Proximity sensor range
+    V_A,        // general purpose variables
+    V_B,        // general purpose variables
+    V_C,        // general purpose variables
+    V_D,        // general purpose variables
+    V_E,        // general purpose variables
+    V_F,        // general purpose variables
 	NUM_VARS
 } EVar;
 
@@ -106,12 +113,10 @@ typedef enum
 	S_UNTIL,
 	S_CONDITIONA,
 	S_COMPARISONA,
-	S_KEYVALUE2,
 	S_KEYVALUE3,
 	S_BOOLEAN,
 	S_CONDITIONB,
 	S_COMPARISONB,
-	S_KEYVALUE4,
 	S_KEYVALUE5,
 	S_RIGHTB,
 	S_END

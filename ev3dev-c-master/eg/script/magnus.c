@@ -265,6 +265,7 @@ SVarItem g_Vars[NUM_VARS] =
 	{"kp",			1.0 },
 	{"ki",			0.0 },
 	{"kd",			0.0 },
+	{"klimit",	    50.0 },
 	{"kps",			1.0 },
 	{"kis",			0.0 },
 	{"kds",			0.0 },
@@ -275,6 +276,12 @@ SVarItem g_Vars[NUM_VARS] =
 	{"toolspeed",	 10.0 },
 	{"course",	     0.0 },
 	{"prox",	   100.0 },
+	{"a",	         0.0 },
+	{"b",	         0.0 },
+	{"c",	         0.0 },
+	{"d",	         0.0 },
+	{"e",	         0.0 },
+	{"f",	         0.0 },
 };
 
 
@@ -595,6 +602,10 @@ bool ParseLine(char* in, SSequence* pItem)
 					pItem->value1 = value;
 					eSyntax = S_UNTIL;
 				}
+                else
+                {
+                    eSyntax = S_END;
+                }
 				break;
 			case S_UNTIL:
 				if(eKeyword == K_UNTIL)
@@ -604,7 +615,7 @@ bool ParseLine(char* in, SSequence* pItem)
 				}
 				else if(eKeyword == K_END)
 				{
-					return 0;
+					return true;
 				}
 				else
 				{
@@ -615,7 +626,7 @@ bool ParseLine(char* in, SSequence* pItem)
 			case S_CONDITIONA:
 				if(eCond != NUM_COND)
 				{
-					eSyntax = S_KEYVALUE2;
+					eSyntax = S_BOOLEAN;
 //					printf("  CONDA=%s\n", g_Conditions[eCond].name);
 					pItem->eConditionA = eCond;
 					pItem->pConditionA = g_Conditions[eCond].pFunction;
@@ -637,21 +648,6 @@ bool ParseLine(char* in, SSequence* pItem)
 				{
 					printf("syntax error: expected a condition\n");
 					return false;
-				}
-				break;
-			case S_KEYVALUE2:
-				if(eVar != NUM_VARS)
-				{
-					eSyntax = S_KEYVALUE3;
-//					printf("  V(%s)\n", g_Vars[eVar].name);
-					pItem->left_noun0 = eVar;					
-				}
-				else if(sscanf(buffer, "%f", &value) == 1)
-				{
-					eSyntax = S_KEYVALUE3;
-//					printf("  F(%f)\n", value);
-					pItem->left_noun0 = V_NIL;					
-					pItem->left_value0 = value;					
 				}
 				break;
 			case S_KEYVALUE3:
@@ -713,7 +709,7 @@ bool ParseLine(char* in, SSequence* pItem)
 			case S_CONDITIONB:
 				if(eCond != NUM_COND)
 				{
-					eSyntax = S_KEYVALUE4;
+                    eSyntax = S_END;
 //					printf("  CONDB=%s\n", g_Conditions[eCond].name);
 					pItem->eConditionB = eCond;
 					pItem->pConditionB = g_Conditions[eCond].pFunction;
@@ -738,21 +734,6 @@ bool ParseLine(char* in, SSequence* pItem)
 				}
 				break;
 
-			case S_KEYVALUE4:
-				if(eVar != NUM_VARS)
-				{
-					eSyntax = S_KEYVALUE5;
-//					printf("  V(%s)\n", g_Vars[eVar].name);
-					pItem->right_noun0 = eVar;					
-				}
-				else if(sscanf(buffer, "%f", &value) == 1)
-				{
-					eSyntax = S_KEYVALUE5;
-//					printf("  F(%f)\n", value);
-					pItem->right_noun0 = V_NIL;					
-					pItem->right_value0 = value;					
-				}
-				break;
 			case S_KEYVALUE5:
 				if(eVar != NUM_VARS)
 				{
@@ -772,7 +753,7 @@ bool ParseLine(char* in, SSequence* pItem)
 			case S_END:
 				if(eKeyword == K_END)
 				{
-					return false;
+					return true;
 				}
 				printf("syntax error: missing end\n");
 				break;
@@ -789,6 +770,20 @@ bool ParseLine(char* in, SSequence* pItem)
 	}
 
 	return true;
+}
+
+
+bool isblankline(const char* p)
+{
+    int len = strlen(p);
+    for(int i = 0; i < len; i++)
+    {
+        if(p[i] != ' ' && p[i] != '\t')
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 
@@ -811,16 +806,19 @@ bool Compile(char* in, SProgram* pProgram)
 		p++;
 		int len = p - ps - 1;
 		memcpy(buffer, ps, len);
-		buffer[len] = ' ';
-		buffer[len + 1] = '#';
-		buffer[len + 2] = ' ';
-		buffer[len + 3] = 0;
-        if(buffer[0] == '/' && buffer[1] == '/')
+        buffer[len] = 0;
+        
+        if( isblankline(buffer) || (buffer[0] == '/' && buffer[1] == '/'))
         {
             // Line comment
         }
         else
         {
+            // Add artificial end token
+            buffer[len] = ' ';
+            buffer[len + 1] = '#';
+            buffer[len + 2] = ' ';
+            buffer[len + 3] = 0;
             SSequence item;
             SequenceInit(&item);
             if(!ParseLine(buffer, &item))
@@ -925,19 +923,21 @@ void RunProgram(SProgram* pProgram)
 		    pSequence = pSequence->pNext;
 		    s.index = 0;
 		}
-		
-    	uint64_t tend = TimeMilliseconds();
-        int tdiff = (int)(tend - t0);
-        if(tdiff < PROGRAM_UPDATE_RATE)
+		else
         {
-            // throttle the update period
-            int remain = PROGRAM_UPDATE_RATE - tdiff;
-            sleep_ms(remain);
-        }
-        else
-        {
-            // sleep anyway to allow rest of system to get a time slice
-            sleep_ms(2);
+            uint64_t tend = TimeMilliseconds();
+            int tdiff = (int)(tend - t0);
+            if(tdiff < PROGRAM_UPDATE_RATE)
+            {
+                // throttle the update period
+                int remain = PROGRAM_UPDATE_RATE - tdiff;
+                sleep_ms(remain);
+            }
+            else
+            {
+                // sleep anyway to allow rest of system to get a time slice
+                sleep_ms(2);
+            }
         }
     }
 }

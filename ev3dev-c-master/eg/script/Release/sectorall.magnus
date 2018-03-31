@@ -1,4 +1,4 @@
-// Sector1
+// sector1_gate
 
 // Grundopsætning
 set threshold=0.7
@@ -19,7 +19,7 @@ followleft until odometer > 1.0
 followleft until junctionleft
 stop
 
-// Sector2
+// sector2_stairs
 
 // Grundopsætning
 set threshold=0.7
@@ -70,7 +70,7 @@ followright until junctionright
 stop
 
 
-// Sector 3
+// sector3_upramp
 
 // Grundopsætning
 set threshold=0.7
@@ -96,7 +96,7 @@ followright speed=20 odometer=0 until odometer > 3.60
 followright until junctionright
 stop
 
-// Sector 4
+// sector4_vippe
 
 // Grundopsætning
 set threshold=0.7
@@ -116,7 +116,7 @@ followright odometer=0 until odometer > 1.0
 forward odometer=0 speed=60 until odometer > 1.2
 stop
 
-// Sector 5
+// sector5_obstacle
 // Grundopsætning
 set threshold=0.8
 set white=100
@@ -146,6 +146,8 @@ turnright angle=90 odometer=0 until odometer > 0.8
 followright odometer=0 until odometer > 3.2
 stop
 
+// sector6_axerace
+
 // Grundopsætning
 set threshold=0.8
 set white=100
@@ -167,5 +169,4 @@ set speed=30
 set kp=0.8
 followright odometer=0 until odometer > 5
 stop
-
 

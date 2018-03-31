@@ -1,4 +1,4 @@
-set time=0
-wait until time ~ 3
-tool toolpos=1
-stop
+turnright odometer=0 speed=10 until line or noline
+turnright odometer=0 speed=10 until line or odometer > 0
+turnright odometer=0 speed=10 until odometer > 0 or line
+turnright odometer=0 speed=10 until odometer > 0 or odometer > 1

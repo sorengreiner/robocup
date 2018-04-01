@@ -86,23 +86,30 @@ wait time=0 until time > 1
 
 set speed=10
 followright odometer=0 until odometer > 1.0
-forward odometer=0 speed=60 until odometer > 1.2
+forward odometer=0 speed=60 until odometer > 1.1
 stop
 
 //-----------------------------------------------------------------------------
 // sector5_obstacle
+
+gyroreset
 
 stop
 wait until prox < 60
 wait time=0 until time > 1
 wait until prox > 20
 
-forward speed=30 until line
-backward speed=30 odometer=0 until odometer < -0.16
-turnright angle=90 odometer=0 until odometer > 0.64
+set radius=0.4
+set kps=2
+forward speed=20 until line
+backward speed=20 odometer=0 until odometer < -0.20
+turnright angle=90 odometer=0 until odometer > 0.8
+set speed=20
+set kp=0.9
+followleft odometer=0 until odometer > 1.0
 set speed=40
 set kp=0.6
-followleft odometer=0 until odometer > 3.0
+followleft odometer=0 until odometer > 2.0
 set speed=35
 set kp=0.7
 followleft odometer=0 until odometer > 3.0
@@ -125,12 +132,12 @@ set speed=20
 set kps=2
 stop
 gyroreset
-turnright angle=180 odometer=0 until odometer > 1.65
-turnleft angle=90 odometer=0 until odometer > 0.6
+turnright angle=180 odometer=0 until odometer > 1.70
+turnleft angle=90 odometer=0 until odometer > 0.57
 set course=90
 followcourse speed=-20 odometer=0 until odometer < -0.25
 set speed=20
-followcourse course=0 odometer=0 until odometer > 1.1
+followcourse course=0 odometer=0 until odometer > 1.15
 followcourse course=-90 odometer=0 until odometer > 0.7
 followcourse course=-90 until line
 set odometer=0

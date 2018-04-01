@@ -110,6 +110,9 @@ set speed=20
 followright odometer=0 until odometer > 0.3
 set speed=30
 
+//----------------------------------------------------------------------------
+// sector tunnel
+
 followright until junctionright
 backward odometer=0 until odometer < -0.15
 set radius=0.4

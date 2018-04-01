@@ -32,47 +32,24 @@ stop
 //-----------------------------------------------------------------------------
 // sector2_stairs
 
-// Grundopsætning
-followleft odometer=0 speed=20 until odometer > 1.55
-
-// Første trin
-followleft speed=20 until odometer > 1.55
+// Første tri
+set odometer=0
+followright speed=20 until odometer > 1.07
 stop
-wait time=0 until time > 2
-forward speed=10 odometer=0 until odometer > 0.25
-backward odometer=0 until odometer < -0.2
-
-// Andet trin
-followleft odometer=0 speed=10 until odometer > 0.1
+gyroreset
+set speed=10
+followcourse course=-90 until odometer > 3.2
 stop
 wait time=0 until time > 1
-forward speed=10 odometer=0 until odometer > 0.25
 backward odometer=0 until odometer < -0.2
-
-// Tredje trin
-followleft speed=10 odometer=0 until odometer > 0.1
-stop
-wait time=0 until time > 1
-forward speed=10 odometer=0 until odometer > 0.25
-backward odometer=0 until odometer < -0.2
-
-// Fjerde trin
-followleft speed=10 odometer=0 until odometer > 0.1
-stop
-wait time=0 until time > 1
-forward speed=10 odometer=0 until odometer > 0.25
-backward odometer=0 until odometer < -0.2
-
-// Femte trin
-followleft speed=10 odometer=0 until odometer > 0.1
-stop
-wait time=0 until time > 1
-forward speed=10 odometer=0 until odometer > 0.25
-backward odometer=0 until odometer < -0.2
+turnright angle=20 odometer=0 until line or odometer > 0.2
+backward odometer=0 until line or odometer < -0.2
+turnleft angle=20 odometer=0 until line or odometer > 0.2
+backward odometer=0 until line or odometer < -0.2
 
 // Find højre forgrening efter trappe
 set speed=20
-followright odometer=0 until odometer > 0.15
+followright odometer=0 until odometer > 0.20
 followright until junctionright
 stop
 
@@ -92,7 +69,7 @@ wait time=0 until time > 1
 turnright angle=90 speed=10 until odometer > 0.5
 
 // Kør indtil T-kryds ved vippe
-followright speed=20 odometer=0 until odometer > 3.60
+followright speed=20 odometer=0 until odometer > 3.80
 
 //-----------------------------------------------------------------------------
 // sector4_vippe
@@ -101,8 +78,8 @@ followright speed=20 odometer=0 until odometer > 3.60
 followright until junctionright
 stop
 
-backward speed=10 odometer=0 until odometer < -0.2
-turnright angle=90 odometer=0 until odometer > 0.5
+backward speed=10 odometer=0 until odometer < -0.20
+turnright angle=90 odometer=0 until odometer > 0.63
 
 stop
 wait time=0 until time > 1
@@ -115,15 +92,14 @@ stop
 //-----------------------------------------------------------------------------
 // sector5_obstacle
 
-forward speed=10 odometer=0 until odometer > 0.1
 stop
 wait until prox < 60
 wait time=0 until time > 1
 wait until prox > 20
 
 forward speed=30 until line
-backward speed=30 odometer=0 until odometer < -0.15
-turnright angle=90 odometer=0 until odometer > 0.8
+backward speed=30 odometer=0 until odometer < -0.16
+turnright angle=90 odometer=0 until odometer > 0.64
 set speed=40
 set kp=0.6
 followleft odometer=0 until odometer > 3.0
@@ -134,10 +110,18 @@ set speed=20
 followright odometer=0 until odometer > 0.3
 set speed=30
 followright until junctionright
-backward speed=20 odometer=0 until odometer < -0.2
-turnright angle=90 odometer=0 until odometer > 0.8
+set radius=0.4
+backward speed=20 odometer=0 until odometer < -0.15
+turnright angle=90 odometer=0 until odometer > 0.7
 
-// følg linien hen til økseport
+
+
+
+
+
+// følg linien hen til øksepoi
+set speed=30
+set kp=0.9
 followright odometer=0 until odometer > 3.2
 stop
 
@@ -159,7 +143,7 @@ followright speed=45 odometer=0 until odometer > 0.8
 set kp=0.9
 followright speed=20 odometer=0 until odometer > 0.7
 set kp=0.4
-set speed=60
+set speed=100
 followright odometer=0 until odometer > 6
 set speed=30
 set kp=0.8

@@ -2,6 +2,8 @@
 set threshold=0.7
 set white=100
 set black=0
+set kps=2
+set radius=0.4
 
 // Kør til første trin
 set speed=20
@@ -10,7 +12,14 @@ followleft until junctionleft
 set odometer=0
 
 // Første trin
-followleft speed=20 until odometer > 1.55
+followright speed=20 until odometer > 1.07
+stop
+gyroreset
+set speed=10
+followcourse course=-90 until odometer > 3.2
+stop
+wait time=0 until time > 3
+followright speed=20 odometer=0 until odometer > 0.2
 stop
 wait time=0 until time > 2
 forward speed=10 odometer=0 until odometer > 0.25

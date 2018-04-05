@@ -12,12 +12,12 @@ set kp=0.6
 followright speed=45 odometer=0 until odometer > 0.8
 set kp=0.9
 followright speed=20 odometer=0 until odometer > 0.7
-set kp=0.3
+set kp=0.35
 set speed=100
 set odometer=0
 followright odometer=0 until odometer > 6
 set speed=40
-set kp=0.6
+set kp=0.7
 followright odometer=0 until odometer > 5
 stop
 

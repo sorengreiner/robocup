@@ -121,7 +121,7 @@ set speed=30
 // sector tunnel
 
 followright until junctionright
-backward odometer=0 until odometer < -0.15
+backward odometer=0 until odometer < -0.16
 set radius=0.4
 set odometer=0
 turnright angle=90 until odometer > 0.7
@@ -171,8 +171,14 @@ followright speed=20 odometer=0 until odometer > 0.7
 set kp=0.4
 set speed=100
 followright odometer=0 until odometer > 6
+set speed=40
+set kp=0.7
+followright odometer=0 until odometer > 1.5
 set speed=30
 set kp=0.8
-followright odometer=0 until odometer > 5
+followright odometer=0 until odometer > 3.5
+stop
+wait time=0 until time > 1
+followright odometer=0 until odometer > 3
 stop
 

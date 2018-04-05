@@ -80,7 +80,7 @@ followright until junctionright
 stop
 wait time=0 until time > 0.5
 
-backward speed=10 odometer=0 until odometer < -0.20
+backward speed=10 odometer=0 until odometer < -0.18
 turnright angle=90 odometer=0 until odometer > 0.63
 
 stop

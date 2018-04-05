@@ -129,17 +129,17 @@ set odometer=0
 turnright angle=90 until odometer > 0.7
 followleft odometer=0 until odometer > 1.0
 
-set radius=0.37
+set radius=0.36
 set speed=20
 set kps=2
 stop
 gyroreset
-turnright angle=180 odometer=0 until odometer > 1.70
+turnright angle=180 odometer=0 until odometer > 1.73
 turnleft angle=90 odometer=0 until odometer > 0.57
 set course=90
 followcourse speed=-20 odometer=0 until odometer < -0.25
 set speed=20
-followcourse course=0 odometer=0 until odometer > 1.15
+followcourse course=0 odometer=0 until odometer > 1.20
 followcourse course=-90 odometer=0 until odometer > 0.7
 followcourse course=-90 until line
 set odometer=0

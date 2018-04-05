@@ -75,8 +75,10 @@ followright speed=20 odometer=0 until odometer > 3.80
 // sector4_vippe
 
 // Find venstre forgrening efter trappe
+set speed=10
 followright until junctionright
 stop
+wait time=0 until time > 0.5
 
 backward speed=10 odometer=0 until odometer < -0.20
 turnright angle=90 odometer=0 until odometer > 0.63
